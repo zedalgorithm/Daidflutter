@@ -1,0 +1,38 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "emsdirectaid",
+          "appId": "1:262681042121:android:5942fc9128561bc56d0118",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "emsdirectaid",
+          "configurations": {
+            "android": "1:262681042121:android:5942fc9128561bc56d0118",
+            "ios": "1:262681042121:ios:6ea014b7a709bccb6d0118",
+            "macos": "1:262681042121:ios:6ea014b7a709bccb6d0118",
+            "web": "1:262681042121:web:379a9d9b9194d4cd6d0118",
+            "windows": "1:262681042121:web:84889fa3f2ebd5ea6d0118"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

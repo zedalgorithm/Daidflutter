@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "262681042121",
+    "project_id": "emsdirectaid",
+    "storage_bucket": "emsdirectaid.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:262681042121:android:5942fc9128561bc56d0118",
+        "android_client_info": {
+          "package_name": "com.zed455555.daid"
+        }
+      }, 
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBalTTSJY-hArtu_Pv0_4TSynCQI0ffGCU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
