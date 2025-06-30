@@ -23,7 +23,7 @@ class _NeedApprovalScreenState extends State<NeedApprovalScreen> {
       final data = doc.data() as Map<String, dynamic>;
       data['userType'] = userType;
       
-      // Create user in Firebase Authentication directly
+  
       final email = data['email'];
       final password = data['password'] ?? 'changeme123'; // fallback password if not present
       
