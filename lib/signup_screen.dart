@@ -430,7 +430,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 20),
               TextField(
                 controller: fullNameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Full Name',
                   border: OutlineInputBorder(),
                 ),
@@ -438,7 +438,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: selectedGender,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Select Gender',
                   border: OutlineInputBorder(),
                 ),
@@ -458,7 +458,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 10),
               TextField(
                 controller: religionController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Religion',
                   border: OutlineInputBorder(),
                 ),
@@ -467,7 +467,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               TextField(
                 controller: birthDateController,
                 readOnly: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Birth Date',
                   border: OutlineInputBorder(),
                   hintText: 'Select Date',
@@ -491,7 +491,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Select Home Address',
                   border: OutlineInputBorder(),
                 ),
@@ -510,7 +510,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 10),
               TextField(
                 controller: emailController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Email Address',
                   border: OutlineInputBorder(),
                 ),
@@ -519,7 +519,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               TextField(
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Phone Number',
                   prefixText: '+63 ',
                   border: OutlineInputBorder(),
@@ -533,7 +533,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isPasswordVisible
@@ -553,7 +553,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isPasswordVisible
@@ -589,7 +589,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
                     padding:
-                        EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
