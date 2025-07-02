@@ -1,13 +1,10 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:camera/camera.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -88,13 +85,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
-  String selectedGender = 'Male';
+  String? selectedGender;
   DateTime? selectedDate;
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   String? selectedAddress;
+
+  final _formKey = GlobalKey<FormState>();
 
   File? _selfieImage;
   File? _validIdImage;
+
+  String? _validateEmailAddress(String? email){
+    RegExp emailRegex = RegExp(r'^.+@[a-zA-Z]+\.{1}[a-zA-Z]+(\.{0,1}[a-zA-Z]+)$');
+    final isEmailValid = emailRegex.hasMatch(email ?? '');
+      if (email == null || email.isEmpty) {
+        return 'Please enter an email address';
+      }
+      if (!isEmailValid){
+        return 'Please enter a valid email';
+      }
+      return null;
+  }
 
   @override
   void initState() {
@@ -128,7 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: onTap,
@@ -164,67 +176,67 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _validateForm() {
     if (fullNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your full name')),
+        const SnackBar(content: Text('Please enter your full name')),
       );
       return false;
     }
     if (religionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your religion')),
+        const SnackBar(content: Text('Please enter your religion')),
       );
       return false;
     }
     if (birthDateController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select your birth date')),
+        const SnackBar(content: Text('Please select your birth date')),
       );
       return false;
     }
     if (selectedAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select your address')),
+        const SnackBar(content: Text('Please select your address')),
       );
       return false;
     }
     if (emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your email')),
+        const SnackBar(content: Text('Please enter your email')),
       );
       return false;
     }
     if (phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your phone number')),
+        const SnackBar(content: Text('Please enter your phone number')),
       );
       return false;
     }
     if (passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a password')),
+        const SnackBar(content: Text('Please enter a password')),
       );
       return false;
     }
     if (passwordController.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password must be at least 6 characters')),
+        const SnackBar(content: Text('Password must be at least 6 characters')),
       );
       return false;
     }
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Passwords do not match')),
+        const SnackBar(content: Text('Passwords do not match')),
       );
       return false;
     }
     if (_selfieImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please capture your selfie')),
+        const SnackBar(content: Text('Please capture your selfie')),
       );
       return false;
     }
     if (_validIdImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please capture your valid ID')),
+        const SnackBar(content: Text('Please capture your valid ID')),
       );
       return false;
     }
@@ -247,252 +259,400 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign Up'),
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        title: const Text('Create Account',
+        style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       backgroundColor: Colors.grey.shade50,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Create Account',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: fullNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                value: selectedGender,
-                decoration: const InputDecoration(
-                  labelText: 'Select Gender',
-                  border: OutlineInputBorder(),
-                ),
-                items: <String>['Male', 'Female', 'Other']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedGender = value ?? '';
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: religionController,
-                decoration: const InputDecoration(
-                  labelText: 'Religion',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: birthDateController,
-                readOnly: true,
-                decoration: const InputDecoration(
-                  labelText: 'Birth Date',
-                  border: OutlineInputBorder(),
-                  hintText: 'Select Date',
-                ),
-                onTap: () async {
-                  final DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate ?? DateTime.now(),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                  );
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: TextFormField(
+                      validator: (name) => name!.isEmpty ? 'Please enter your fullname' : name!.length < 5 ? 'Fullname should be more than 5 characters': null,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      controller: fullNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Full Name',
+                        border: OutlineInputBorder(
+                           borderSide: BorderSide(color: Colors.grey),
+                        ),
+                          focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blue),
+                        ),
+                          errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
+                          focusedErrorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red, width: 2),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField2<String>(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (gender) {
+                      if (gender == null || gender.isEmpty) {
+                        return 'Please select a gender';
+                      }
+                      return null;
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Gender',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red, width: 2),
+                      ),
+                    ),
+                    hint: const Text('Select Gender'),
+                    value: selectedGender,
+                    items: ['Male', 'Female', 'Other']
+                        .map((item) => DropdownMenuItem<String>(
+                              value: item,
+                              child: Text(item),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedGender = value;
+                      });
+                    },
+                  ),
 
-                  if (pickedDate != null && pickedDate != selectedDate) {
-                    setState(() {
-                      selectedDate = pickedDate;
-                      birthDateController.text =
-                          "${pickedDate.toLocal()}".split(' ')[0];
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Select Home Address',
-                  border: OutlineInputBorder(),
-                ),
-                items: barangayOptions.map<DropdownMenuItem<String>>((option) {
-                  return DropdownMenuItem<String>(
-                    value: option['value'],
-                    child: Text(option['label']!),
-                  );
-                }).toList(),
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedAddress = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: emailController,
-<<<<<<< HEAD
-                decoration: const InputDecoration(
-=======
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
->>>>>>> 9fd9c66ff841e74bf3e7b456f9efeef4fd76fa29
-                  labelText: 'Email Address',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                  prefixText: '+63 ',
-                  border: OutlineInputBorder(),
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: religionController,
+                    validator: (religion) => religion!.isEmpty ? 'Enter your religion' : null,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      labelText: 'Religion',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: birthDateController,
+                    readOnly: true,
+                    validator: (birthdate) => birthdate!.isEmpty ? 'Please select your birthdate' : null,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      labelText: 'Birth Date',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red, width: 2),
+                      ),
+                      hintText: 'Select Date',
+                    ),
+                    onTap: () async {
+                      final DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate ?? DateTime.now(),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                      );
+                        
+                      if (pickedDate != null && pickedDate != selectedDate) {
+                        setState(() {
+                          selectedDate = pickedDate;
+                          birthDateController.text =
+                              "${pickedDate.toLocal()}".split(' ')[0];
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField2<String>(
+                    isDense: true,
+                    dropdownStyleData: const DropdownStyleData(
+                      maxHeight: 200,
+                    ),
+                    alignment: AlignmentDirectional.centerStart,
+                    isExpanded: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (address){
+                      if (address == null || address.isEmpty) {
+                        return 'Please select your address';
+                      }
+                      return null;                   
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Select Home Address',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red, width: 2),
+                      ),
+                    ),
+                    hint: const Text('Select Home Address'),
+                    value: selectedAddress,
+                    items: barangayOptions.map<DropdownMenuItem<String>>((option) {
+                      return DropdownMenuItem<String>(
+                        value: option['value'],
+                        child: Text(option['label']!),
+                      );
+                    }).toList(),
+                    onChanged: (String? value) {
+                      setState(() {
+                        selectedAddress = value;
+                      });
+                    }, // ✅ Now works!
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: _validateEmailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email Address',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red, width: 2),                        
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: phoneController,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (phNum) => phNum!.length < 10 ? 'Invalid phone number.\nMake sure it should be 10 characters long' : null,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone Number',
+                      prefixText: '+63 ',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red, width: 2),  
+                      ),
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: !_isPasswordVisible,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (password) => password!.length < 6 ? 'Password must be more than 6 characters long.' : null,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      border:  OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red, width: 2),  
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: confirmPasswordController,
+                    obscureText: !_isConfirmPasswordVisible,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (confirmPassword) {
+                        if (confirmPassword == null || confirmPassword.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        if (confirmPassword != passwordController.text) {
+                          return 'Password did not match';
+                        }
+                        return null;
+                      },
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red, width: 2),  
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                        
+                  // Selfie Capture Section
+                  _buildImageDisplay(_selfieImage, 'Selfie (Face Photo)', _captureSelfie),
+                  const SizedBox(height: 20),
+                        
+                  // Valid ID Capture Section
+                  _buildImageDisplay(_validIdImage, 'Valid ID', _captureValidIdImage),
+                  const SizedBox(height: 20),
+                        
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // if (!_validateForm()) {
+                          //   return;
+                          // }
+                              if (_formKey.currentState?.validate() == true) {
+                                 try {
+                                    // Show loading indicator
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (_) => const Center(child: CircularProgressIndicator()),
+                                    );
+                                        
+                                    // 1. Upload images to Firebase Storage
+                                    final storage = FirebaseStorage.instance;
+                                    final selfieRef = storage.ref('need_approval_selfies/${DateTime.now().millisecondsSinceEpoch}_${emailController.text.trim()}.jpg');
+                                    final idRef = storage.ref('need_approval_ids/${DateTime.now().millisecondsSinceEpoch}_${emailController.text.trim()}.jpg');
+                                        
+                                    final selfieUploadTask = await selfieRef.putFile(_selfieImage!);
+                                    final idUploadTask = await idRef.putFile(_validIdImage!);
+                                        
+                                    final selfieUrl = await selfieUploadTask.ref.getDownloadURL();
+                                    final idUrl = await idUploadTask.ref.getDownloadURL();
+                                        
+                                    // 2. Save data to NeedApproval collection (NOT creating user in Auth yet)
+                                    await FirebaseFirestore.instance.collection('NeedApproval').add({
+                                      'name': fullNameController.text.trim(),
+                                      'gender': selectedGender,
+                                      'religion': religionController.text.trim(),
+                                      'dateOfBirth': birthDateController.text,
+                                      'address': selectedAddress,
+                                      'email': emailController.text.trim(),
+                                      'phoneNumber': '+63${phoneController.text.trim()}',
+                                      'password': passwordController.text, // Store password for admin approval
+                                      'selfieUrl': selfieUrl,
+                                      'validIdUrl': idUrl,
+                                      'timestamp': FieldValue.serverTimestamp(),
+                                      'status': 'pending',
+                                    });
+                                        
+                                    Navigator.of(context).pop(); // Remove loading indicator
+                                        
+                                    // Show thank you page
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(builder: (_) => const ThankYouScreen()),
+                                    );
+                                  } catch (e) {
+                                    Navigator.of(context).pop(); // Remove loading indicator
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to submit: $e'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                              }else{
+                                _validateForm();
+                              }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text('Submit for Approval', style: TextStyle(fontSize: 18)),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: passwordController,
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: confirmPasswordController,
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Selfie Capture Section
-              _buildImageDisplay(_selfieImage, 'Selfie (Face Photo)', _captureSelfie),
-              const SizedBox(height: 20),
-
-              // Valid ID Capture Section
-              _buildImageDisplay(_validIdImage, 'Valid ID', _captureValidIdImage),
-              const SizedBox(height: 20),
-
-              Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (!_validateForm()) {
-                      return;
-                    }
-
-                    try {
-                      // Show loading indicator
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) => Center(child: CircularProgressIndicator()),
-                      );
-
-                      // 1. Upload images to Firebase Storage
-                      final storage = FirebaseStorage.instance;
-                      final selfieRef = storage.ref('need_approval_selfies/${DateTime.now().millisecondsSinceEpoch}_${emailController.text.trim()}.jpg');
-                      final idRef = storage.ref('need_approval_ids/${DateTime.now().millisecondsSinceEpoch}_${emailController.text.trim()}.jpg');
-
-                      final selfieUploadTask = await selfieRef.putFile(_selfieImage!);
-                      final idUploadTask = await idRef.putFile(_validIdImage!);
-
-                      final selfieUrl = await selfieUploadTask.ref.getDownloadURL();
-                      final idUrl = await idUploadTask.ref.getDownloadURL();
-
-                      // 2. Save data to NeedApproval collection (NOT creating user in Auth yet)
-                      await FirebaseFirestore.instance.collection('NeedApproval').add({
-                        'name': fullNameController.text.trim(),
-                        'gender': selectedGender,
-                        'religion': religionController.text.trim(),
-                        'dateOfBirth': birthDateController.text,
-                        'address': selectedAddress,
-                        'email': emailController.text.trim(),
-                        'phoneNumber': '+63${phoneController.text.trim()}',
-                        'password': passwordController.text, // Store password for admin approval
-                        'selfieUrl': selfieUrl,
-                        'validIdUrl': idUrl,
-                        'timestamp': FieldValue.serverTimestamp(),
-                        'status': 'pending',
-                      });
-
-                      Navigator.of(context).pop(); // Remove loading indicator
-
-                      // Show thank you page
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => ThankYouScreen()),
-                      );
-                    } catch (e) {
-                      Navigator.of(context).pop(); // Remove loading indicator
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Failed to submit: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-<<<<<<< HEAD
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-=======
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
->>>>>>> 9fd9c66ff841e74bf3e7b456f9efeef4fd76fa29
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text('Submit for Approval', style: TextStyle(fontSize: 18)),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -512,15 +672,15 @@ class ThankYouScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 80),
+              const Icon(Icons.check_circle, color: Colors.green, size: 80),
               const SizedBox(height: 24),
-              Text(
+              const Text(
                 'Thank you for signing up!',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'Your registration has been submitted for approval. '
                 'You will receive an email once your account is approved by an administrator.',
                 style: TextStyle(fontSize: 18),
@@ -531,7 +691,7 @@ class ThankYouScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).pushReplacementNamed('LoginScreen');
                 },
-                child: Text('Go to Login'),
+                child: const Text('Go to Login'),
               ),
             ],
           ),
