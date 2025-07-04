@@ -1297,20 +1297,6 @@ Future<void> _fetchUserDetails() async {
               ),
               SizedBox(height: screenHeight * 0.02),
 
-              // // Display the user's address
-              // userAddress == null
-              //     ? CircularProgressIndicator() // Show loading indicator
-              //     : Text(
-              //         userAddress!,
-              //         style: TextStyle(fontSize: 18),
-              //         textAlign: TextAlign.center,
-              //       ),
-
-              // // Button to refresh the address
-              // ElevatedButton(
-              //   onPressed: _getUserAddress,
-              //   child: Text("Refresh Address"),
-              // ),
 
               // Send Report Button
               Center(
