@@ -1210,11 +1210,11 @@ class _ReportFireEmergencyPageState extends State<ReportFireEmergencyPage> {
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(60),
                               borderSide: const BorderSide(
-                                  color:   Color(0xFFF1811A), width: 1.0)),
+                                  color:   Color(0xFFF1811A), width: 0.5)),
                           disabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(60),
                             borderSide: const BorderSide(
-                                color:   Color(0xFFF1811A), width: 1.0),
+                                color:   Color(0xFFF1811A), width: 0.5),
                           ),
                           hintText: 'Enter location address',
                           isDense: true, // Reduces overall field height
@@ -1275,10 +1275,7 @@ class _ReportFireEmergencyPageState extends State<ReportFireEmergencyPage> {
                         EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: Color(0xFFF1811A), width: 1)
-                      // side: selectedButton == 0
-                      //     ? const BorderSide(color: Color(0xFF2451C5), width: 1)
-                      //     : BorderSide.none,
+                      side: const BorderSide(color: Color(0xFFF1811A), width: 0.5)
                     ),
                   ),
                   child: const Text('For Myself'),
@@ -1299,7 +1296,7 @@ class _ReportFireEmergencyPageState extends State<ReportFireEmergencyPage> {
                         EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: Color(0xFFF1811A), width: 1)
+                      side: const BorderSide(color: Color(0xFFF1811A), width: 0.5)
                       // side: selectedButton == 1
                       //     ? const BorderSide(color: Colors.blue, width: 1)
                       //     : BorderSide.none,

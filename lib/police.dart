@@ -409,11 +409,11 @@ class _ReportPoliceEmergencyPageState extends State<ReportPoliceEmergencyPage> {
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(60),
                               borderSide: BorderSide(
-                                  color: const Color(0xFF2451C5), width: 1.0)),
+                                  color: const Color(0xFF2451C5), width: 0.5)),
                           disabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(60),
                             borderSide: BorderSide(
-                                color: const Color(0xFF2451C5), width: 1.0),
+                                color: const Color(0xFF2451C5), width: 0.5),
                           ),
                           hintText: 'Enter location address',
                           isDense: true, // Reduces overall field height
@@ -473,10 +473,7 @@ class _ReportPoliceEmergencyPageState extends State<ReportPoliceEmergencyPage> {
                         EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: Color(0xFF2451C5), width: 1)
-                      // side: selectedButton == 0
-                      //     ? const BorderSide(color: Color(0xFF2451C5), width: 1)
-                      //     : BorderSide.none,
+                      side: BorderSide(color: Color(0xFF2451C5), width: 0.5)
                     ),
                   ),
                   child: const Text('For Myself'),
@@ -497,7 +494,7 @@ class _ReportPoliceEmergencyPageState extends State<ReportPoliceEmergencyPage> {
                         EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: Color(0xFF2451C5), width: 1)
+                      side: BorderSide(color: Color(0xFF2451C5), width: 0.5)
                       // side: selectedButton == 1
                       //     ? const BorderSide(color: Colors.blue, width: 1)
                       //     : BorderSide.none,
