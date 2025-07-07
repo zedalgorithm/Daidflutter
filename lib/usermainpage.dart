@@ -89,48 +89,46 @@ class _UserMainPageState extends State<UserMainPage> {
               accountName: Text(_userName),
               accountEmail: Text(_email), // Replace with dynamic email if needed
               currentAccountPicture: CircleAvatar(
-                backgroundImage: NetworkImage(
-                  _userPhotoUrl.isNotEmpty ? _userPhotoUrl : 'https://example.com/default_profile.jpg',
-                ),
+                backgroundImage: AssetImage('assets/1.png')
               ),
             ),
             ListTile(
-              leading: Icon(Icons.account_circle),
-              title: Text('My Account'),
+              leading: const Icon(Icons.account_circle),
+              title: const Text('My Account'),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()),
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
                 );
               },  
             ),
             ListTile(
-              leading: Icon(Icons.phone),
-              title: Text('Hotlines'),
+              leading: const Icon(Icons.phone),
+              title: const Text('Hotlines'),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UHotlinesScreen()),
+                  MaterialPageRoute(builder: (context) => const UHotlinesScreen()),
                 );
               },
             ),
             ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
               onTap: () {
                  Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SettingsScreen()),
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
                 );
               },
             ),
             ListTile(
-              leading: Icon(Icons.info),
-              title: Text('About'),
+              leading: const Icon(Icons.info),
+              title: const Text('About'),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AboutPage()),
+                  MaterialPageRoute(builder: (context) => const AboutPage()),
                 );
               },
             ),
@@ -140,187 +138,187 @@ class _UserMainPageState extends State<UserMainPage> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(15.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              // User Location Info at the top
-              Container(
-                padding: const EdgeInsets.all(6.0),
-                decoration: BoxDecoration(
-                  color: Colors.pink[100],
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Row(
-                  children: [
-                    // Profile Image with Online Indicator
-                    Builder(
-                      builder: (BuildContext context) {
-                        return GestureDetector(
-                          onTap: () {
-                            // Open the drawer when the profile image is tapped
-                            Scaffold.of(context).openDrawer();
-                          },
-                          child: Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: profileImageSize / 2,
-                                backgroundImage: NetworkImage(
-                                  _userPhotoUrl.isNotEmpty ? _userPhotoUrl : 'https://example.com/default_profile.jpg',
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                // User Location Info at the top
+                Container(
+                  padding: const EdgeInsets.all(6.0),
+                  decoration: BoxDecoration(
+                    color: Colors.pink[100],
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Row(
+                    children: [
+                      // Profile Image with Online Indicator
+                      Builder(
+                        builder: (BuildContext context) {
+                          return GestureDetector(
+                            onTap: () {
+                              // Open the drawer when the profile image is tapped
+                              Scaffold.of(context).openDrawer();
+                            },
+                            child: Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: profileImageSize / 2,
+                                  backgroundImage: AssetImage('assets/1.png')
                                 ),
-                              ),
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  width: profileImageSize * 0.2,
-                                  height: profileImageSize * 0.2,
-                                  decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 1),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: Container(
+                                    width: profileImageSize * 0.2,
+                                    height: profileImageSize * 0.2,
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 1),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 12),
-                    // Text Section
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _userName,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _currentAddress,
-                            style: const TextStyle(fontSize: 14, color: Colors.black),
-                            textAlign: TextAlign.left,
-                          ),
-                        ],
+                          );
+                        },
                       ),
+                      const SizedBox(width: 12),
+                      // Text Section
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _userName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            
+                            Text(
+                              _currentAddress,
+                              style: const TextStyle(fontSize: 10, color: Colors.black),
+                              textAlign: TextAlign.left,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.20), // Space below location info
+            
+                // Column of services
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Top service buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                // Handle long press for POLICE
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Long pressed POLICE service')),
+                                );
+                              },
+            
+                              onLongPress: () {
+            
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const ReportPoliceEmergencyPage()),
+            
+                                );
+                              },
+                              child: _buildServiceButton(
+                                context,
+                                'assets/police.png', // Use your custom image path
+                                cardSize * 0.9, // Adjusted size for the police button
+                              ),
+                            ),
+                            const SizedBox(height: 4), // Space between button and text
+                            const Text(
+                              'POLICE',
+                              style: TextStyle(fontSize: 18, color: Colors.blue, fontWeight: FontWeight.bold,), // Adjust text style as needed
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 40), // Space between buttons
+                        Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                // Handle long press for FIRE
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Long pressed FIRE service')),
+                                );
+                              },
+            
+                                onLongPress: (){
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context)=> const ReportFireEmergencyPage()),
+                                  );
+                                },
+            
+                              child: _buildServiceButton(
+                                context,
+                                'assets/fire.png', // Use your custom image path
+                                cardSize * 0.9, // Adjusted size for the fire button
+                              ),
+                            ),
+                            const SizedBox(height: 4), // Space between button and text
+                            const Text(
+                              'FIRE',
+                              style: TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold,), // Adjust text style as needed
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5), // Space between rows
+                    // Medical Service
+                    Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            // Handle long press for MEDICAL
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Long pressed MEDICAL service')),
+                            );
+                          },
+                            onLongPress: () {
+                              // Navigate to the ReportEmergencyPage on long press
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ReportEmergencyPage()),
+                              );
+                            },
+            
+                          child: _buildServiceButton(
+                            context,
+                            'assets/medical.png', // Use your custom image path
+                            cardSize * 0.9, // Adjusted size for the medical button
+                          ),
+                        ),
+                        const SizedBox(height: 4), // Space between button and text
+                        const Text(
+                          'MEDICAL',
+                          style: TextStyle(fontSize: 18, color: Colors.red, fontWeight: FontWeight.bold,), // Adjust text style as needed
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: screenHeight * 0.20), // Space below location info
-
-              // Column of services
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Top service buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              // Handle long press for POLICE
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Long pressed POLICE service')),
-                              );
-                            },
-
-                            onLongPress: () {
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => ReportPoliceEmergencyPage()),
-
-                              );
-                            },
-                            child: _buildServiceButton(
-                              context,
-                              'assets/police.png', // Use your custom image path
-                              cardSize * 0.9, // Adjusted size for the police button
-                            ),
-                          ),
-                          const SizedBox(height: 4), // Space between button and text
-                          Text(
-                            'POLICE',
-                            style: TextStyle(fontSize: 18, color: Colors.blue, fontWeight: FontWeight.bold,), // Adjust text style as needed
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 40), // Space between buttons
-                      Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              // Handle long press for FIRE
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Long pressed FIRE service')),
-                              );
-                            },
-
-                              onLongPress: (){
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context)=> ReportFireEmergencyPage()),
-                                );
-                              },
-
-                            child: _buildServiceButton(
-                              context,
-                              'assets/fire.png', // Use your custom image path
-                              cardSize * 0.9, // Adjusted size for the fire button
-                            ),
-                          ),
-                          const SizedBox(height: 4), // Space between button and text
-                          Text(
-                            'FIRE',
-                            style: TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold,), // Adjust text style as needed
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5), // Space between rows
-                  // Medical Service
-                  Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          // Handle long press for MEDICAL
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Long pressed MEDICAL service')),
-                          );
-                        },
-                          onLongPress: () {
-                            // Navigate to the ReportEmergencyPage on long press
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => ReportEmergencyPage()),
-                            );
-                          },
-
-                        child: _buildServiceButton(
-                          context,
-                          'assets/medical.png', // Use your custom image path
-                          cardSize * 0.9, // Adjusted size for the medical button
-                        ),
-                      ),
-                      const SizedBox(height: 4), // Space between button and text
-                      Text(
-                        'MEDICAL',
-                        style: TextStyle(fontSize: 18, color: Colors.red, fontWeight: FontWeight.bold,), // Adjust text style as needed
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -379,7 +377,7 @@ class _UserMainPageState extends State<UserMainPage> {
 
   // New method to build service buttons with custom images without border and background
   Widget _buildServiceButton(BuildContext context, String imagePath, double size) {
-    return Container(
+    return SizedBox(
       width: size,
       height: size,
       child: Center( // Center the image within the button

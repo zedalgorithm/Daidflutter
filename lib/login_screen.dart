@@ -1,3 +1,4 @@
+import 'package:daid/customloadingwidget.dart';
 import 'package:flutter/material.dart';
 import 'signup_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'admin_page.dart';
 import 'usermainpage.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   // Define controllers
   final TextEditingController emailController;
   final TextEditingController passwordController;
@@ -14,36 +15,58 @@ class LoginScreen extends StatelessWidget {
       : emailController = TextEditingController(),
         passwordController = TextEditingController();
 
-  Future<void> _showDialog(
-      BuildContext context, String title, String message, bool isError) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title,
-              style: TextStyle(
-                color: isError ? Colors.red : Colors.green,
-              )),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(message),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  // Future<void> _showDialog(
+  //     BuildContext context, String title, String message, bool isError) async {
+  //   return showDialog<void>(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text(title,
+  //             style: TextStyle(
+  //               color: isError ? Colors.red : Colors.green,
+  //             )),
+  //         content: SingleChildScrollView(
+  //           child: ListBody(
+  //             children: <Widget>[
+  //               Text(message),
+  //             ],
+  //           ),
+  //         ),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             child: const Text('OK'),
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+  Future<void> _showErrorDialog(BuildContext context, String title, String message) async {
+  if (!context.mounted) return; // Avoid errors if widget is disposed
+  await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -55,10 +78,7 @@ class LoginScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              inputFields(),
-              btnContainer(context)
-            ],
+            children: [inputFields(), Expanded(child: Container()),btnContainer(context)],
           ),
         ),
       ),
@@ -66,8 +86,7 @@ class LoginScreen extends StatelessWidget {
   }
 
   Widget inputFields() {
-    return Expanded(
-        child: SingleChildScrollView(
+    return SingleChildScrollView(
       child: Column(
         children: [
           Container(
@@ -84,7 +103,8 @@ class LoginScreen extends StatelessWidget {
           Container(
             margin: const EdgeInsets.only(top: 20.0),
             child: TextField(
-              controller: emailController,
+              textInputAction: TextInputAction.next,
+              controller: widget.emailController,
               decoration: const InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(),
@@ -95,7 +115,8 @@ class LoginScreen extends StatelessWidget {
 
           // Password TextField
           TextField(
-            controller: passwordController,
+            textInputAction: TextInputAction.done,
+            controller: widget.passwordController,
             obscureText: true,
             decoration: const InputDecoration(
               labelText: 'Password',
@@ -128,7 +149,7 @@ class LoginScreen extends StatelessWidget {
           ),
         ],
       ),
-    ));
+    );
   }
 
   Widget btnContainer(BuildContext context) {
@@ -138,11 +159,25 @@ class LoginScreen extends StatelessWidget {
           // Login Button
           ElevatedButton(
             onPressed: () async {
+
+                showDialog(
+  context: context,
+  barrierDismissible: false,
+  builder: (BuildContext context) {
+    return const Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: CustomLoadingWidget(),
+    );
+  },
+);
+
+
               try {
                 UserCredential userCredential =
                     await FirebaseAuth.instance.signInWithEmailAndPassword(
-                  email: emailController.text.trim(),
-                  password: passwordController.text.trim(),
+                  email: widget.emailController.text.trim(),
+                  password: widget.passwordController.text.trim(),
                 );
 
                 // Get user data from Firestore
@@ -153,10 +188,6 @@ class LoginScreen extends StatelessWidget {
 
                 if (userDoc.exists) {
                   String userType = userDoc.get('userType');
-
-                  // Show success dialog first
-                  await _showDialog(
-                      context, 'Success', 'Login successful!', false);
 
                   // Navigate based on userType
                   if (userType == 'Admin') {
@@ -173,26 +204,26 @@ class LoginScreen extends StatelessWidget {
                     );
                   }
                 } else {
-                  await _showDialog(
-                      context, 'Error', 'User document not found', true);
+                  await _showErrorDialog(
+                      context, 'Error', 'User document not found');
                 }
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'user-not-found') {
-                  await _showDialog(context, 'Login Error',
-                      'No user found for that email', true);
+                  await _showErrorDialog(context, 'Login Error',
+                      'No user found for that email', );
                 } else if (e.code == 'wrong-password') {
-                  await _showDialog(context, 'Login Error',
-                      'Wrong password provided. Please try again.', true);
+                  await _showErrorDialog(context, 'Login Error',
+                      'Wrong password provided. Please try again.', );
                 } else {
-                  await _showDialog(
+                  await _showErrorDialog(
                       context,
                       'Login Error',
                       'Error: ${'Wrong password provided. Please try again.'}',
-                      true);
+                      );
                 }
               } catch (e) {
-                await _showDialog(
-                    context, 'Error', 'Error: ${e.toString()}', true);
+                await _showErrorDialog(
+                    context, 'Error', 'Error: ${e.toString()}', );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -449,9 +480,3 @@ class LoginScreen extends StatelessWidget {
 //     );
 //   }
 // }
-
-
-
-
-
-

@@ -6,7 +6,7 @@ import 'usermainpage.dart'; // Make sure this import path is correct for your pr
 import 'notification_helper.dart';
 
 class CancelButtonExample extends StatefulWidget {
-  const CancelButtonExample({Key? key}) : super(key: key);
+  const CancelButtonExample({super.key});
 
   @override
   _CancelButtonExampleState createState() => _CancelButtonExampleState();
@@ -152,7 +152,7 @@ class _CancelButtonExampleState extends State<CancelButtonExample> {
                   decoration: BoxDecoration(
                     color: Colors.amber.shade100,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
                         blurRadius: 8,

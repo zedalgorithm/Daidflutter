@@ -6,6 +6,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileDrawer extends StatelessWidget {
+  const ProfileDrawer({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -13,23 +15,23 @@ class ProfileDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           ListTile(
-            leading: Icon(Icons.arrow_back),
-            title: Text('Back'),
+            leading: const Icon(Icons.arrow_back),
+            title: const Text('Back'),
             onTap: () {
               Navigator.pop(context);
             },
           ),
-          DrawerHeader(
+          const DrawerHeader(
             decoration: BoxDecoration(color: Colors.blueGrey),
             child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
           ),
           ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile'),
+            leading: const Icon(Icons.person),
+            title: const Text('Profile'),
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => ProfileScreen()),
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
             },
           ),
@@ -41,6 +43,8 @@ class ProfileDrawer extends StatelessWidget {
 }
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -87,22 +91,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     if (loading) {
       return Scaffold(
-        appBar: AppBar(title: Text('Profile')),
-        body: Center(child: CircularProgressIndicator()),
+        appBar: AppBar(title: const Text('Profile')),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
+        title: const Text('Profile'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      drawer: ProfileDrawer(),
+      drawer: const ProfileDrawer(),
       body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Column(
           children: [
             Stack(
@@ -111,14 +115,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   radius: 75,
                   backgroundImage: userData!['photo'] != null
                       ? NetworkImage(userData!['photo'])
-                      : AssetImage('assets/profile_placeholder.png') as ImageProvider,
+                      : const AssetImage('assets/profile_placeholder.png') as ImageProvider,
                 ),
                 Positioned(
                   bottom: 0,
                   right: 4,
                   child: InkWell(
                     onTap: pickAndUpload,
-                    child: CircleAvatar(
+                    child: const CircleAvatar(
                       radius: 20,
                       backgroundColor: Colors.white38,
                       child: Icon(Icons.camera_alt, size: 20),
@@ -127,15 +131,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 )
               ],
             ),
-            SizedBox(height: 16),
-            Text(userData!['name'] ?? 'N/A', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            SizedBox(height: 24),
+            const SizedBox(height: 16),
+            Text(userData!['name'] ?? 'N/A', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
             _infoRow('Email Address', userData!['email']),
             _infoRow('Religion', userData!['religion']),
             _infoRow('Gender', userData!['gender']),
             _infoRow('Home Address', userData!['address']),
             _infoRow('Birth Date', userData!['dateOfBirth']),
-            _infoRow('Age', userData!['age'] != null ? userData!['age'].toString() : null),
+            _infoRow('Age', userData!['age']?.toString()),
             _infoRow('Phone Number', userData!['phoneNumber'] != null ? '+63${userData!['phoneNumber']}' : null),
           ],
         ),
@@ -145,11 +149,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _infoRow(String label, String? value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          Expanded(child: Text(value ?? 'N/A', style: TextStyle(fontSize: 16))),
+          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Expanded(child: Text(value ?? 'N/A', style: const TextStyle(fontSize: 16))),
         ],
       ),
     );

@@ -233,7 +233,7 @@ class _AdminPageState extends State<AdminPage> {
                   ),
                   child: Text(
                     accidentType,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -256,10 +256,10 @@ class _AdminPageState extends State<AdminPage> {
               const SizedBox(height: 20),
 
               // Assign Rescue Team Section
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.start, // Align to the left
                 children: [
-                  const Text(
+                  Text(
                     'Assign Rescue Team:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
@@ -480,11 +480,11 @@ Widget _teamButton(String team, String documentId) {
     future: _getSelectedTeamFromFirestore(documentId),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return CircularProgressIndicator(); // Show loading while fetching data
+        return const CircularProgressIndicator(); // Show loading while fetching data
       }
 
       if (snapshot.hasError) {
-        return Text("Error loading team data!"); // Handle potential errors
+        return const Text("Error loading team data!"); // Handle potential errors
       }
 
       // Set the initial value of the notifier only once, when Firestore data is loaded
@@ -667,7 +667,7 @@ void saveAdminFcmToken() async {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HotlinesScreen()),
+                  MaterialPageRoute(builder: (context) => const HotlinesScreen()),
                 );
               },
             ),
@@ -686,7 +686,7 @@ void saveAdminFcmToken() async {
               onTap: () {
                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()),
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
                 );
               },
             ),
@@ -717,7 +717,7 @@ void saveAdminFcmToken() async {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AboutPage()),
+                  MaterialPageRoute(builder: (context) => const AboutPage()),
                 );
               },
             ),

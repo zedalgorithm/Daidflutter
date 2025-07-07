@@ -45,8 +45,8 @@ class NotificationHelper {
                 showDialog(
                   context: context,
                   barrierDismissible: true,
-                  builder: (context) => AlertDialog(
-                    content: const Text('Your Help Request is Responded! Rescue is on its way!'),
+                  builder: (context) => const AlertDialog(
+                    content: Text('Your Help Request is Responded! Rescue is on its way!'),
                   ),
                 );
               }
@@ -88,8 +88,8 @@ class NotificationHelper {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => AlertDialog(
-        content: const Text('Your Help Request is Responded! Rescue is on its way!'),
+      builder: (context) => const AlertDialog(
+        content: Text('Your Help Request is Responded! Rescue is on its way!'),
       ),
     );
   }

@@ -62,6 +62,7 @@ dependencies:
   # intl: ^0.17.0 
   url_launcher: ^6.2.5
   firebase_messaging: ^14.9.4
+  dropdown_button2: ^2.3.9
   
 
 
@@ -99,6 +100,7 @@ flutter:
     - assets/caricon.png
     - assets/medicalicon.png
     - assets/traumaicon.png
+    - assets/1.png
 
 
   #   - images/a_dot_burr.jpeg

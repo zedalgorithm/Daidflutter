@@ -826,6 +826,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 
 class ReportFireEmergencyPage extends StatefulWidget {
+  const ReportFireEmergencyPage({super.key});
+
   @override
   _ReportFireEmergencyPageState createState() =>  _ReportFireEmergencyPageState();
 }
@@ -837,9 +839,9 @@ class _ReportFireEmergencyPageState extends State<ReportFireEmergencyPage>{
 
   late GoogleMapController mapController; // Controller for the Google Map
   LatLng _currentPosition = const LatLng(11.6072, 125.4353); // Variable to hold the current position
-  Set<Marker> _markers = {}; // Set to hold markers
+  final Set<Marker> _markers = {}; // Set to hold markers
   String _currentAddress = ''; // Variable to hold the current address
-  TextEditingController _addressController = TextEditingController(); // Declare the TextEditingController
+  final TextEditingController _addressController = TextEditingController(); // Declare the TextEditingController
   String? userAddress; // Variable to hold the user's address
   String? address; // Variable to hold the address for saving
   DateTime requestDate = DateTime.now(); // Variable to hold the request date
@@ -875,9 +877,9 @@ class _ReportFireEmergencyPageState extends State<ReportFireEmergencyPage>{
       _currentPosition = LatLng(position.latitude, position.longitude); // Create LatLng from Position
       _markers.add(
         Marker(
-          markerId: MarkerId('current_location'),
+          markerId: const MarkerId('current_location'),
           position: _currentPosition,
-          infoWindow: InfoWindow(title: 'You are here'), // Info window for the marker
+          infoWindow: const InfoWindow(title: 'You are here'), // Info window for the marker
           draggable: true, // Make the marker draggable
           onDragEnd: (newPosition) {
             setState(() {
@@ -971,7 +973,7 @@ Future<void> _fetchUserDetails() async {
                       
                      
       'address': _currentAddress, // Use the current address
-      'emergencyPhoto': _image != null ? _image!.path : null, // Save the image path if available
+      'emergencyPhoto': _image?.path, // Save the image path if available
       'latitude': _currentPosition.latitude,
       'longitude': _currentPosition.longitude,
       'reportedFor': selectedButton == 0 ? 'For Myself' : 
@@ -1019,7 +1021,7 @@ Future<void> _fetchUserDetails() async {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () {
               Navigator.pop(context);
             },
@@ -1038,14 +1040,14 @@ Future<void> _fetchUserDetails() async {
                   style: TextStyle(
                     fontSize: 18 * textScale,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFFF1811A),
+                    color: const Color(0xFFF1811A),
                   ),
                 ),
               ),
               SizedBox(height: screenHeight * 0.02),
 
               // Map Placeholder
-              Container(
+              SizedBox(
                 height: screenHeight * 0.25,
                 width: MediaQuery.of(context).size.width,
                 child: Stack(
@@ -1072,10 +1074,10 @@ Future<void> _fetchUserDetails() async {
                               // Logic to expand the map to full screen
                             },
                              mini: true,
-                            child: Icon(Icons.fullscreen),
                             backgroundColor: Colors.white,
+                            child: Icon(Icons.fullscreen),
                           ),
-                          SizedBox(height: 5), // Space between buttons
+                          const SizedBox(height: 5), // Space between buttons
                           // Current Location Button
                           FloatingActionButton(
                             onPressed: () async {
@@ -1100,9 +1102,9 @@ Future<void> _fetchUserDetails() async {
                                   // Add a new marker for the current location
                                   _markers.add(
                                     Marker(
-                                      markerId: MarkerId('current_location'),
+                                      markerId: const MarkerId('current_location'),
                                       position: _currentPosition,
-                                      infoWindow: InfoWindow(title: 'You are here'), // Info window for the marker
+                                      infoWindow: const InfoWindow(title: 'You are here'), // Info window for the marker
                                       draggable: true, // Make the marker draggable
                                       onDragEnd: (newPosition) {
                                         setState(() {
@@ -1122,12 +1124,12 @@ Future<void> _fetchUserDetails() async {
                                 print("Error getting location: $e");
                               }
                             },
-                            mini: true, // Set to true to make the button smaller
+                            mini: true,
+                            backgroundColor: Colors.white, // Set to true to make the button smaller
                             child: Icon(
                               Icons.my_location,
                               size: 20, // Set the icon size
                             ),
-                            backgroundColor: Colors.white,
                           ),
                         ],
                       ),
@@ -1156,11 +1158,11 @@ Future<void> _fetchUserDetails() async {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                           side: selectedButton == 0
-                              ? BorderSide(color:Color(0xFFF1811A), width: 1)
+                              ? const BorderSide(color:Color(0xFFF1811A), width: 1)
                               : BorderSide.none,
                         ),
                       ),
-                      child: Text('For Myself'),
+                      child: const Text('For Myself'),
                     ),
                   ),
                   SizedBox(width: screenWidth * 0.02),
@@ -1176,11 +1178,11 @@ Future<void> _fetchUserDetails() async {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                           side: selectedButton == 1
-                              ? BorderSide(color: Colors.red, width: 1)
+                              ? const BorderSide(color: Colors.red, width: 1)
                               : BorderSide.none,
                         ),
                       ),
-                      child: Text('For Someone'),
+                      child: const Text('For Someone'),
                     ),
                   ),
                 ],
@@ -1194,7 +1196,7 @@ Future<void> _fetchUserDetails() async {
               ),
               TextField(
                 controller: _addressController, // Use the TextEditingController
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   hintText: 'Enter location address',
                 ),
@@ -1220,15 +1222,15 @@ Future<void> _fetchUserDetails() async {
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: selectedEmergencyType == 0 // Check if "Crime" is selected
-                        ? Color(0xFFF1811A) // Selected border color
+                        ? const Color(0xFFF1811A) // Selected border color
                         : Colors.grey.shade300, // Default border color
                     width: 1, // Border width
                   ),
                  
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
-                  children: const [
+                child: const Column(
+                  children: [
                     Icon(
                       Icons.local_fire_department,
                      color: Color(0xFFF1811A),
@@ -1256,8 +1258,8 @@ Future<void> _fetchUserDetails() async {
                       'Upload photo of incident (optional)',
                       style: TextStyle(fontSize: 16 * textScale),
                     ),
-                    SizedBox(height: 8),
-                    Container(
+                    const SizedBox(height: 8),
+                    SizedBox(
                       width: screenWidth * 0.15,
                       height: screenWidth * 0.15,
                       child: _image == null // Check if an image has been selected
@@ -1274,7 +1276,7 @@ Future<void> _fetchUserDetails() async {
                               style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1303,7 +1305,7 @@ Future<void> _fetchUserDetails() async {
                 child: ElevatedButton(
                   onPressed: _sendReport,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFF1811A),
+                    backgroundColor: const Color(0xFFF1811A),
                     padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.2, vertical: screenHeight * 0.02),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),

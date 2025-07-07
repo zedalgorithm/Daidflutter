@@ -10,11 +10,11 @@ class AboutPage extends StatelessWidget {
         title: const Text('About Direct Aid'),
         backgroundColor: Colors.redAccent,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Center(
               child: Icon(
                 Icons.health_and_safety_rounded,

@@ -808,7 +808,7 @@ class IncidentReportScreen extends StatefulWidget {
   @override
   _IncidentReportScreenState createState() => _IncidentReportScreenState();
   final String documentId;
-  IncidentReportScreen({Key? key, required this.documentId}) : super(key: key);
+  const IncidentReportScreen({super.key, required this.documentId});
 }
 
 class _IncidentReportScreenState extends State<IncidentReportScreen> {
@@ -823,17 +823,17 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
   bool _isTraumaCaseSelected = false;
   String? _selectedSymptom;
   String? _selectedTrauma;
-  List<String> _selectedSymptoms = []; // Track selected symptoms
-  List<String> _selectedTraumaOptions = []; // Track selected trauma options
-  List<String> _selectedConditions = []; // Track selected conditions
-  List<String> _selectedCauses = []; // Track selected causes
+  final List<String> _selectedSymptoms = []; // Track selected symptoms
+  final List<String> _selectedTraumaOptions = []; // Track selected trauma options
+  final List<String> _selectedConditions = []; // Track selected conditions
+  final List<String> _selectedCauses = []; // Track selected causes
   bool _waiverChecked1 = false;
   bool _waiverChecked2 = false;
-  SignatureController _signatureController = SignatureController(
+  final SignatureController _signatureController = SignatureController(
     penStrokeWidth: 5,
     penColor: Colors.black,
   );
-  SignatureController _patientSignatureController = SignatureController(
+  final SignatureController _patientSignatureController = SignatureController(
     penStrokeWidth: 5,
     penColor: Colors.black,
   );
@@ -845,23 +845,23 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
   Map<String, dynamic> userDetails = {};
 
   // Declare controllers at the class level
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _dateController = TextEditingController();
-  TextEditingController _genderController = TextEditingController();
-  TextEditingController _ageController = TextEditingController();
-  TextEditingController _contactNumberController = TextEditingController();
-  TextEditingController _addressController = TextEditingController();
-  TextEditingController _locationController = TextEditingController();
-  TextEditingController _timeController = TextEditingController();
-  TextEditingController _incidentTimeController = TextEditingController();
-  TextEditingController _informantController = TextEditingController();
-  TextEditingController _chiefComplaintController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
+  final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _contactNumberController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _incidentTimeController = TextEditingController();
+  final TextEditingController _informantController = TextEditingController();
+  final TextEditingController _chiefComplaintController = TextEditingController();
   // Add controllers for vital signs
-  TextEditingController _temperatureController = TextEditingController();
-  TextEditingController _pulseRateController = TextEditingController();
-  TextEditingController _respiratoryRateController = TextEditingController();
-  TextEditingController _spo2Controller = TextEditingController();
-  TextEditingController _bloodPressureController = TextEditingController();
+  final TextEditingController _temperatureController = TextEditingController();
+  final TextEditingController _pulseRateController = TextEditingController();
+  final TextEditingController _respiratoryRateController = TextEditingController();
+  final TextEditingController _spo2Controller = TextEditingController();
+  final TextEditingController _bloodPressureController = TextEditingController();
 
   @override
   void initState() {
@@ -923,7 +923,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Incident Report'),
+        title: const Text('Incident Report'),
         backgroundColor: Colors.red,
       ),
       backgroundColor: Colors.white,
@@ -940,12 +940,12 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   borderRadius: BorderRadius.circular(8.0),
                   
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Patient Details / Person Who Reported', style: TextStyle(color: Colors.white, fontSize: 20)),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               
               _buildTextFieldq('Name', _nameController),
               _buildTextFieldq('Date', _dateController),
@@ -959,34 +959,34 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
               _buildTextFieldq('Informant', _informantController),
               _buildTextFieldq('Chief Complaint', _chiefComplaintController),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
                            Container(
                 decoration: BoxDecoration(
                   color: Colors.black, // Set background color to black
                   border: Border.all(color: Colors.black),
                   borderRadius: BorderRadius.circular(8.0),
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Type of Incident', style: TextStyle(color: Colors.white, fontSize: 20)),
                 ),
               ),
-              SizedBox(height: 10), // Spacing below the title
+              const SizedBox(height: 10), // Spacing below the title
               Column(
                 children: [
                   _buildIncidentOption('Vehicular Accident'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildIncidentOption('Medical Case'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildIncidentOption('Trauma Case'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildIncidentOption('Transport Only'),
                 ],
               ),
 
               // Show additional options based on selection
               if (_isMedicalCaseSelected) ...[
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 // Text('Medical Case Symptoms', style: TextStyle(color: Colors.black, fontSize: 20)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1016,8 +1016,8 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
               ],
 
               if (_isTraumaCaseSelected) ...[
-                SizedBox(height: 20),
-                Text('Trauma Case Options', style: TextStyle(color: Colors.black, fontSize: 20)),
+                const SizedBox(height: 20),
+                const Text('Trauma Case Options', style: TextStyle(color: Colors.black, fontSize: 20)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1047,7 +1047,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
 
           
               if (_selectedIncidentType == 'Vehicular Accident') ...[
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1074,18 +1074,18 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                Container(
                 decoration: BoxDecoration(
                   color: Colors.black, // Set background color to black
                   borderRadius: BorderRadius.circular(8.0), // Rounded corners
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Cause Of Vehicular Accident', style: TextStyle(color: Colors.white, fontSize: 20)), // Set text color to white
                 ),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1111,31 +1111,31 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                 ),
               ],
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
                             Container(
                 decoration: BoxDecoration(
                   color: Colors.black, // Set background color to black
                   borderRadius: BorderRadius.circular(8.0), // Rounded corners
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Mobility', style: TextStyle(color: Colors.white, fontSize: 20)), // Set text color to white
                 ),
               ),
-              SizedBox(height: 10), // Spacing below the title
+              const SizedBox(height: 10), // Spacing below the title
               Column(
                 children: [
                   _buildMobilityOption('None'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildMobilityOption('Ambulatory'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildMobilityOption('Non-Ambulatory'),
                 ],
               ),
 
 
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.black, // Set background color to black
@@ -1143,25 +1143,25 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   borderRadius: BorderRadius.circular(8.0),
                   
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Burn', style: TextStyle(color: Colors.white, fontSize: 20)), // Set text color to white
                 ),
               ),
-              SizedBox(height: 10), // Spacing below the title
+              const SizedBox(height: 10), // Spacing below the title
               Column(
                 children: [
                   _buildBurnOption('None'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildBurnOption('1st Degree'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildBurnOption('2nd Degree'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildBurnOption('3rd Degree'),
                 ],
               ),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
                 Container(
                 decoration: BoxDecoration(
                   color: Colors.black, // Set background color to black
@@ -1169,12 +1169,12 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   borderRadius: BorderRadius.circular(8.0),
                   
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Vital Signs', style: TextStyle(color: Colors.white, fontSize: 20)),
                 ),
               ),
-               SizedBox(height: 10),
+               const SizedBox(height: 10),
               _buildTextFieldq('Temperature', _temperatureController),
               _buildTextFieldq('Pulse Rate', _pulseRateController),
               _buildTextFieldq('Respiratory Rate', _respiratoryRateController),
@@ -1183,7 +1183,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
 
 
             
-                 SizedBox(height: 20),
+                 const SizedBox(height: 20),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.black, // Set background color to black
@@ -1191,53 +1191,53 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   borderRadius: BorderRadius.circular(8.0),
                   
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Level of Consciousness', style: TextStyle(color: Colors.white, fontSize: 20)),
                 ),
               ),
 
-               SizedBox(height: 10),
+               const SizedBox(height: 10),
               Column(
                 children: [
                   _buildConsciousnessOption('Alert'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildConsciousnessOption('Verbal Response'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildConsciousnessOption('Responsive to Pain'),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   _buildConsciousnessOption('Unresponsive'),
                 ],
               ),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
           
                Container(
                 decoration: BoxDecoration(
                   color: Colors.black, // Set background color to black
                   borderRadius: BorderRadius.circular(8.0), // Rounded corners
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Action Taken', style: TextStyle(color: Colors.white, fontSize: 20)), // Set text color to white
                 ),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               _buildCheckboxGroup(),
 
               // Waiver Section
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.black, // Set background color to black
                   borderRadius: BorderRadius.circular(8.0), // Rounded corners
                 ),
-                padding: EdgeInsets.all(8.0),
-                child: Center(
+                padding: const EdgeInsets.all(8.0),
+                child: const Center(
                   child: Text('Waiver', style: TextStyle(color: Colors.white, fontSize: 20)), // Set text color to white
                 ),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               Row(
                 children: [
                   Checkbox(
@@ -1249,7 +1249,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                     },
                     activeColor: Colors.black,
                   ),
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Refuse any medical aid and/or evaluation by emergency medical personnel.',
                       style: TextStyle(color: Colors.black),
@@ -1268,7 +1268,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                     },
                     activeColor: Colors.black,
                   ),
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Refuse transport to emergency receiving facility by emergency medical personnel.',
                       style: TextStyle(color: Colors.black),
@@ -1276,15 +1276,15 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'I also acknowledge that I have been advised that medical aid is needed and that my refusal of evaluation and/or transportation may result in the worsening of my condition and could result in permanent injury or death. I will not hold anyone accountable for my decision.',
                 style: TextStyle(color: Colors.black),
               ),
 
               // Signature Section
-              SizedBox(height: 20),
-              Text('Witness Name & Signature', style: TextStyle(color: Colors.black, fontSize: 20)),
+              const SizedBox(height: 20),
+              const Text('Witness Name & Signature', style: TextStyle(color: Colors.black, fontSize: 20)),
               GestureDetector(
                 onLongPress: () {
                   _signatureController.clear(); // Clear the signature pad on long press
@@ -1295,13 +1295,13 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   backgroundColor: Colors.grey[200]!,
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
              
               _buildTextField('Witness Name', 'Enter Name'),
               _buildTextField('Relation/Designation', 'Enter Relation/Designation'),
 
-              SizedBox(height: 20),
-              Text('Patient Name & Signature', style: TextStyle(color: Colors.black, fontSize: 20)),
+              const SizedBox(height: 20),
+              const Text('Patient Name & Signature', style: TextStyle(color: Colors.black, fontSize: 20)),
               GestureDetector(
                 onLongPress: () {
                   _patientSignatureController.clear(); // Clear the patient signature pad on long press
@@ -1312,12 +1312,12 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   backgroundColor: Colors.grey[200]!,
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               _buildTextField('Patient Name', 'Enter Name'),
               
 
               // Save Report Button
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               Center(
                 child: ElevatedButton(
                   onPressed: () async {
@@ -1398,29 +1398,29 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                       // Delete the original request from 'Help Requests' after saving
                       await FirebaseFirestore.instance.collection('Help Requests').doc(widget.documentId).delete();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Report saved successfully!')),
+                        const SnackBar(content: Text('Report saved successfully!')),
                       );
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error saving report: ' + e.toString())),
+                        SnackBar(content: Text('Error saving report: $e')),
                       );
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green, // Background color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 80), // Adjust padding for height
+                  ),
                   
-                  child: Text(
+                  child: const Text(
                     'Save Report',
                     style: TextStyle(
                       color: Colors.white, // Text color
                       fontSize: 18, // Font size
                       fontWeight: FontWeight.bold, // Bold text
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // Background color
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 80), // Adjust padding for height
                   ),
                 ),
               ),
@@ -1434,7 +1434,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
   Widget _buildTextField(String label, String placeholder) {
     return Column(
       children: [
-        SizedBox(height: 5),
+        const SizedBox(height: 5),
         TextField(
           decoration: InputDecoration(
             labelText: label,
@@ -1443,10 +1443,10 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
             fillColor: Colors.grey[50],
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.black),
+              borderSide: const BorderSide(color: Colors.black),
             ),
           ),
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           cursorColor: Colors.black,
           onChanged: (value) {
             if (label == 'Witness Name') {
@@ -1456,7 +1456,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
             }
           },
         ),
-        SizedBox(height: 1),
+        const SizedBox(height: 1),
       ],
     );
   }
@@ -1464,7 +1464,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
   Widget _buildTextFieldq(String label, TextEditingController controller) {
     return Column(
       children: [
-        SizedBox(height: 5),
+        const SizedBox(height: 5),
         TextField(
           controller: controller, // Use the controller here
           decoration: InputDecoration(
@@ -1474,10 +1474,10 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
             fillColor: Colors.grey[50],
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.black),
+              borderSide: const BorderSide(color: Colors.black),
             ),
           ),
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           cursorColor: Colors.black,
           onChanged: (value) {
             if (label == 'Witness Name') {
@@ -1487,7 +1487,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
             }
           },
         ),
-        SizedBox(height: 1),
+        const SizedBox(height: 1),
       ],
     );
   }
@@ -1499,13 +1499,13 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
         // Display the label at the top
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: 5), // Space between label and text field
+        const SizedBox(height: 5), // Space between label and text field
         TextField(
           controller: controller, // Use the controller here
           decoration: InputDecoration(
@@ -1513,21 +1513,21 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.purple, width: 2),
+              borderSide: const BorderSide(color: Colors.purple, width: 2),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.purple, width: 2),
+              borderSide: const BorderSide(color: Colors.purple, width: 2),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.purple, width: 2),
+              borderSide: const BorderSide(color: Colors.purple, width: 2),
             ),
           ),
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           cursorColor: Colors.purple,
         ),
-        SizedBox(height: 10), // Space below the text field
+        const SizedBox(height: 10), // Space below the text field
       ],
     );
   }
@@ -1544,13 +1544,13 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
           borderSide: BorderSide.none,
         ),
       ),
-      style: TextStyle(color: Colors.white),
+      style: const TextStyle(color: Colors.white),
       dropdownColor: Colors.grey[150],
       value: selectedValue,
       items: options.map((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text(value, style: TextStyle(color: Colors.white)),
+          child: Text(value, style: const TextStyle(color: Colors.white)),
         );
       }).toList(),
       onChanged: (String? newValue) {
@@ -1578,7 +1578,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
               },
               activeColor: Colors.white,
             ),
-            Text(value, style: TextStyle(color: Colors.black)),
+            Text(value, style: const TextStyle(color: Colors.black)),
           ],
         );
       }).toList(),
@@ -1648,7 +1648,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
           },
           activeColor: Colors.black,
         ),
-        Text(title, style: TextStyle(color: Colors.black)),
+        Text(title, style: const TextStyle(color: Colors.black)),
       ],
     );
   }
@@ -1669,7 +1669,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
           },
           activeColor: Colors.black,
         ),
-        Text(title, style: TextStyle(color: Colors.black)),
+        Text(title, style: const TextStyle(color: Colors.black)),
       ],
     );
   }
@@ -1690,7 +1690,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
           },
           activeColor: Colors.black,
         ),
-        Text(title, style: TextStyle(color: Colors.black)),
+        Text(title, style: const TextStyle(color: Colors.black)),
       ],
     );
   }
@@ -1706,14 +1706,14 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
         });
       },
       child: Container(
-        padding: EdgeInsets.all(0.1),
+        padding: const EdgeInsets.all(0.1),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(8.0),
           color: _selectedIncidentType == title ? Colors.red : Colors.white,
         ),
         child: ListTile(
-          title: Text(title, style: TextStyle(color: Colors.black)),
+          title: Text(title, style: const TextStyle(color: Colors.black)),
         ),
       ),
     );
@@ -1735,7 +1735,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
           },
           activeColor: Colors.black,
         ),
-        Text(title, style: TextStyle(color: Colors.black)),
+        Text(title, style: const TextStyle(color: Colors.black)),
       ],
     );
   }
@@ -1756,7 +1756,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
           },
           activeColor: Colors.black,
         ),
-        Text(title, style: TextStyle(color: Colors.black)),
+        Text(title, style: const TextStyle(color: Colors.black)),
       ],
     );
   }
@@ -1770,14 +1770,14 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
         });
       },
       child: Container(
-        padding: EdgeInsets.all(0.1),
+        padding: const EdgeInsets.all(0.1),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(8.0),
           color: _selectedMobilityOption == title ? Colors.red : Colors.white, // Change color based on selection
         ),
         child: ListTile(
-          title: Text(title, style: TextStyle(color: Colors.black)),
+          title: Text(title, style: const TextStyle(color: Colors.black)),
         ),
       ),
     );
@@ -1792,14 +1792,14 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
         });
       },
       child: Container(
-        padding: EdgeInsets.all(0.1),
+        padding: const EdgeInsets.all(0.1),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(8.0),
           color: _selectedBurnOption == title ? Colors.red : Colors.white, // Change color based on selection
         ),
         child: ListTile(
-          title: Text(title, style: TextStyle(color: Colors.black)),
+          title: Text(title, style: const TextStyle(color: Colors.black)),
         ),
       ),
     );
@@ -1814,14 +1814,14 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
         });
       },
       child: Container(
-        padding: EdgeInsets.all(0.1),
+        padding: const EdgeInsets.all(0.1),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(8.0),
           color: selectedConsciousnessOption == title ? Colors.red : Colors.white, // Change color based on selection
         ),
         child: ListTile(
-          title: Text(title, style: TextStyle(color: Colors.black)),
+          title: Text(title, style: const TextStyle(color: Colors.black)),
         ),
       ),
     );

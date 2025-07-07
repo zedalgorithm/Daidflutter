@@ -277,7 +277,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: TextFormField(
-                      validator: (name) => name!.isEmpty ? 'Please enter your fullname' : name!.length < 5 ? 'Fullname should be more than 5 characters': null,
+                      validator: (name) => name!.isEmpty ? 'Please enter your fullname' : name.length < 5 ? 'Fullname should be more than 5 characters': null,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       controller: fullNameController,
                       decoration: const InputDecoration(
@@ -496,16 +496,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     validator: (password) => password!.length < 6 ? 'Password must be more than 6 characters long.' : null,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      border:  OutlineInputBorder(
+                      border:  const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey),
                       ),
-                      focusedBorder: OutlineInputBorder(
+                      focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.blue),
                       ),
-                      errorBorder: OutlineInputBorder(
+                      errorBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.red),
                       ),
-                      focusedErrorBorder: OutlineInputBorder(
+                      focusedErrorBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.red, width: 2),  
                       ),
                       suffixIcon: IconButton(
@@ -541,13 +541,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       border: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey),
                       ),
-                      focusedBorder: OutlineInputBorder(
+                      focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.blue),
                       ),
-                      errorBorder: OutlineInputBorder(
+                      errorBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.red),
                       ),
-                      focusedErrorBorder: OutlineInputBorder(
+                      focusedErrorBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.red, width: 2),  
                       ),
                       suffixIcon: IconButton(
