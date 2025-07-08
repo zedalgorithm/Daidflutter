@@ -40,7 +40,40 @@ class RespondedRequestsList extends StatelessWidget {
                      
                     ],
                   ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 18),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Delete Request'),
+                              content: Text('Are you sure you want to delete this request?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            await requests[index].reference.delete();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Request deleted')),
+                            );
+                          }
+                        },
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 18),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
