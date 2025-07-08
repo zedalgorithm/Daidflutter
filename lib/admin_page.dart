@@ -8,11 +8,20 @@ import 'package:flutter/services.dart';
 import 'dart:typed_data';
 import 'package:daid/Report.dart';
 import 'login_screen.dart';
+import 'incidentreport.dart';
+import 'Settings.dart';
 // import 'scan_qr.dart';
 import 'hotlines.dart';
 import 'Profiles.dart';
 import 'Aboutpage.dart';
+import 'needapproval.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'background_service_manager.dart';
+
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -31,27 +40,128 @@ class _AdminPageState extends State<AdminPage> {
   Map<String, bool> teamAssignmentState = {};
   String selectedTeam = '';
   String message = '';
+  Set<String> _knownHelpRequestIds = {};
+  late FirebaseMessaging _messaging;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
+    _initLocalNotifications();
+    _initializeOneSignal();
     _getCurrentLocation();
-    _fetchUserDetails(); // Fetch user details during initialization
-    _fetchHelpRequests(); // Fetch help requests during initialization
-    saveAdminFcmToken();
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // Show a dialog, snackbar, or local notification
-      print('New help request notification: ${message.notification?.title}');
+    _fetchUserDetails();
+    _fetchHelpRequests();
+    initFCM();
+    
+    // Start enhanced background monitoring for admins
+    BackgroundServiceManager.startEmergencyMonitoring();
+    BackgroundServiceManager.startLocationTracking();
+    
+    // Check service status
+    _checkServiceStatus();
+  }
+
+  void _initializeOneSignal() {
+    OneSignal.initialize("ae747b5a-39b4-4148-abc8-4b0b7ba58b4a");
+    OneSignal.Notifications.requestPermission(true);
+    OneSignal.User.addTags({"role": "Admin"});
+    
+    // Set up OneSignal notification handlers
+    OneSignal.Notifications.addClickListener((event) {
+      print('🔔 OneSignal notification clicked: ${event.notification.title}');
+      // Handle notification click - you can navigate to specific screens here
     });
+    
+    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+      print('🔔 OneSignal foreground notification: ${event.notification.title}');
+      // Show the notification as a banner
+      event.notification.display(); // This line shows the in-app notification banner
+    });
+
+   
+  }
+
+  // Send OneSignal notification for new help requests
+  void _sendOneSignalNotification(String accidentType, String requesterName, String address) {
+    try {
+      // Create notification content
+      String title = '🚨 New $accidentType Emergency';
+      String body = 'Request from $requesterName at $address';
+      
+      
+      // For OneSignal, we typically send notifications from the server side
+      // But we can show a local notification using flutter_local_notifications
+      flutterLocalNotificationsPlugin.show(
+        DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title,
+        body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'high_importance_channel',
+            'High Importance Notifications',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound('alert_sound'),
+          ),
+        ),
+      );
+      
+      print('🔔 Local notification sent: $title');
+    } catch (e) {
+      print('❌ Error sending notification: $e');
+    }
   }
 
   Future<void> _getCurrentLocation() async {
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    setState(() {
-      _currentPosition = LatLng(position.latitude, position.longitude);
-      _addMarker();
-    });
-    mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition));
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        print('❌ Location services are disabled');
+        return;
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          print('❌ Location permissions are denied');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        print('❌ Location permissions are permanently denied');
+        return;
+      }
+
+      // Get current position with high accuracy settings
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.bestForNavigation, // Most accurate
+        timeLimit: const Duration(seconds: 15), // Timeout after 15 seconds
+      );
+
+      setState(() {
+        _currentPosition = LatLng(position.latitude, position.longitude);
+        _addMarker();
+      });
+
+      // Animate camera to new position
+      if (mapController != null) {
+        mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition));
+      }
+
+      print('📍 Location updated: ${position.latitude}, ${position.longitude}');
+      print('📍 Accuracy: ${position.accuracy} meters');
+    } catch (e) {
+      print('❌ Error getting location: $e');
+      // Fallback to default location if needed
+    }
   }
 
   Future<void> _fetchUserDetails() async {
@@ -67,84 +177,88 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _fetchHelpRequests() async {
     FirebaseFirestore.instance.collection('Help Requests').snapshots().listen((snapshot) async {
-        Set<Marker> newMarkers = {}; // Temporary set to store markers
-        for (var doc in snapshot.docs) {
-            var data = doc.data();
-            if (data['latitude'] != null && data['longitude'] != null) {
-                LatLng position = LatLng(data['latitude'], data['longitude']);
-                String requesterName = data['userDetails']['name'] ?? 'Unknown';
-                String coordinates = '${data['latitude']}, ${data['longitude']}'; // Format coordinates
-                String address = data['address'] ?? 'No address provided'; // Get address
-                String requestDate = data['requestDate'] ?? '';
-                String timeNow = data['timeNow'] ?? '';
-                String documentId = doc.id;
-                String accidentType = data['accidentType'] ?? 'Unknown'; // Get accident type
-                String? emergencyPhoto = data['emergencyPhoto'];
-                String selectedTeam = data['selectedTeam'] ?? ''; // Get selected team
+      Set<Marker> newMarkers = {};
+      for (var doc in snapshot.docs) {
+        var data = doc.data();
+        String documentId = doc.id;
 
-                // Determine the icon based on the accident type
-                BitmapDescriptor icon;
-                
-                // If COBSART is selected, use ambulance icon regardless of accident type
-                if (selectedTeam == 'COBSART') {
-                    icon = await BitmapDescriptor.fromAssetImage(
-                        const ImageConfiguration(size: Size(48, 48)),
-                        'assets/ambulance.png', // Use ambulance icon for COBSART
-                    );
-                } else {
-                    // Use original accident type icons if no team is selected or different team
-                    switch (accidentType) {
-                        case 'Fire':
-                            icon = await BitmapDescriptor.fromAssetImage(
-                                const ImageConfiguration(size: Size(48, 48)),
-                                'assets/fireicon1.png', // Path to your fire icon
-                            );
-                            break;
-                        case 'Crime':
-                            icon = await BitmapDescriptor.fromAssetImage(
-                                const ImageConfiguration(size: Size(48, 48)),
-                                'assets/crimeicon.png', // Path to your crime icon
-                            );
-                            break;
-                        case 'Vehicular Accident':
-                            icon = await BitmapDescriptor.fromAssetImage(
-                                const ImageConfiguration(size: Size(300, 300)),
-                                'assets/caricon.png', // Path to your vehicular accident icon
-                            );
-                            break;
-                        case 'Medical Case':
-                            icon = await BitmapDescriptor.fromAssetImage(
-                                const ImageConfiguration(size: Size(48, 48)),
-                                'assets/medicalicon.png', // Path to your medical case icon
-                            );
-                            break;
-                        case 'Trauma Case':
-                            icon = await BitmapDescriptor.fromAssetImage(
-                                const ImageConfiguration(size: Size(48, 48)),
-                                'assets/traumaicon.png', // Path to your trauma case icon
-                            );
-                            break;
-                        default:
-                            icon = await BitmapDescriptor.fromAssetImage(
-                                const ImageConfiguration(size: Size(48, 48)),
-                                'assets/default_icon.png', // Default icon if no type matches
-                            );
-                    }
-                }
+        if (data['latitude'] != null && data['longitude'] != null) {
+          LatLng position = LatLng(data['latitude'], data['longitude']);
+          String requesterName = data['userDetails']?['name'] ?? 'Unknown';
+          String accidentType = data['accidentType'] ?? 'Unknown';
+          String address = data['address'] ?? 'No address provided';
+          String requestDate = data['requestDate'] ?? '';
+          String timeNow = data['timeNow'] ?? '';
+          String coordinates = '${data['latitude']}, ${data['longitude']}';
+          String? emergencyPhoto = data['emergencyPhoto'];
+          String selectedTeam = data['selectedTeam'] ?? '';
 
-              
+          BitmapDescriptor icon;
+          if (selectedTeam == 'COBSART') {
+            icon = await BitmapDescriptor.fromAssetImage(
+              const ImageConfiguration(size: Size(48, 48)),
+              'assets/markers/medicalresponded.png',
+            );
+          } else if (selectedTeam == 'BFP') {
+            icon = await BitmapDescriptor.fromAssetImage(
+              const ImageConfiguration(size: Size(48, 48)),
+              'assets/markers/flame responded.png',
+            );
+          } else if (selectedTeam == 'POLICE') {
+            icon = await BitmapDescriptor.fromAssetImage(
+              const ImageConfiguration(size: Size(48, 48)),
+              'assets/markers/polician responded.png',
+            );
+          } else {
+            switch (accidentType) {
+              case 'Fire':
+                icon = await BitmapDescriptor.fromAssetImage(
+                  const ImageConfiguration(size: Size(48, 48)),
+                  'assets/markers/flamegeneric.png',
+                );
+                break;
+              case 'Crime':
+                icon = await BitmapDescriptor.fromAssetImage(
+                  const ImageConfiguration(size: Size(48, 48)),
+                  'assets/markers/police.png',
+                );
+                break;
+              case 'Vehicular Accident':
+                icon = await BitmapDescriptor.fromAssetImage(
+                  const ImageConfiguration(size: Size(300, 300)),
+                  'assets/markers/vehicle.png',
+                );
+                break;
+              case 'Medical Case':
+                icon = await BitmapDescriptor.fromAssetImage(
+                  const ImageConfiguration(size: Size(48, 48)),
+                  'assets/markers/medicalgeneric.png',
+                );
+                break;
+              case 'Trauma Case':
+                icon = await BitmapDescriptor.fromAssetImage(
+                  const ImageConfiguration(size: Size(48, 48)),
+                  'assets/markers/trauma.png',
+                );
+                break;
+              default:
+                icon = await BitmapDescriptor.fromAssetImage(
+                  const ImageConfiguration(size: Size(48, 48)),
+                  'assets/default_icon.png',
+                );
+            }
+          }
 
-// Add marker for this help request
-        newMarkers.add(
-          Marker(
-            markerId: MarkerId(documentId),
-            position: position,
-            infoWindow: InfoWindow(
-              title: 'Accident Type - $accidentType',
-              snippet: 'Requested by - $requesterName',
-              onTap: () {
-                if (emergencyPhoto != null && emergencyPhoto.isNotEmpty) {
-                  // Pass emergencyPhoto to the bottom sheet if it exists
+          // Add marker
+          newMarkers.add(
+            Marker(
+              markerId: MarkerId(documentId),
+              position: position,
+              icon: icon,
+              infoWindow: InfoWindow(
+                title: 'Accident Type - $accidentType',
+                snippet: 'Requested by - $requesterName',
+                onTap: () {
                   _showBottomSheet(
                     context,
                     data['description'] ?? 'Help Request',
@@ -157,33 +271,26 @@ class _AdminPageState extends State<AdminPage> {
                     documentId,
                     emergencyPhoto,
                   );
-                } else {
-                  // Handle the case where no photo is available
-                  _showBottomSheet(
-                    context,
-                    data['description'] ?? 'Help Request',
-                    accidentType,
-                    requesterName,
-                    coordinates,
-                    address,
-                    requestDate,
-                    timeNow,
-                    documentId,
-                    null, // Pass null for emergencyPhoto
-                  );
-                }
-              },
+                },
+              ),
             ),
-            icon: icon,
-          ),
-        );
+          );
+
+          // ✅ Send OneSignal Notification ONLY for new docs
+          if (!_knownHelpRequestIds.contains(documentId)) {
+            _knownHelpRequestIds.add(documentId);
+            
+            // Send OneSignal notification for new help request
+            _sendOneSignalNotification(accidentType, requesterName, address);
+          }
+        }
       }
-    }
-    setState(() {
-      _markers = newMarkers; // Update the markers on the map
+
+      setState(() {
+        _markers = newMarkers;
+      });
     });
-  });
-}
+  }
 
   Future<BitmapDescriptor> getCustomMarker(String assetPath) async {
     final ByteData byteData = await rootBundle.load(assetPath);
@@ -233,7 +340,7 @@ class _AdminPageState extends State<AdminPage> {
                   ),
                   child: Text(
                     accidentType,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -256,24 +363,16 @@ class _AdminPageState extends State<AdminPage> {
               const SizedBox(height: 20),
 
               // Assign Rescue Team Section
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.start, // Align to the left
                 children: [
-                  Text(
+                  const Text(
                     'Assign Rescue Team:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-              //    Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //   children: [
-              //     _teamButton('COBSART'),
-              //     _teamButton('BFP'),
-              //     _teamButton('POLICE'),
-              //   ],
-              // ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -283,142 +382,87 @@ class _AdminPageState extends State<AdminPage> {
                 ],
               ),
 
-
               const SizedBox(height: 20),
 
-  
-              // // Respond Button
-              // ElevatedButton(
-              //   style: ElevatedButton.styleFrom(
-              //     minimumSize: const Size(double.infinity, 50),
-              //     backgroundColor: Colors.green,
-              //     shape: RoundedRectangleBorder(
-              //       borderRadius: BorderRadius.circular(10),
-              //     ),
-              //   ),
-              //   onPressed: () async {
-              //     // Get the selected team
-              //     String selectedTeam = selectedTeamNotifier.value;
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: teamAssignmentState[documentId] == true
+                      ? Colors.red // Cancel button color 
+                      : Colors.green, // Respond button color 
+                  shape: RoundedRectangleBorder( 
+                    borderRadius: BorderRadius.circular(10), 
+                  ),
+                ),
+                onPressed: () async {
+                  if (teamAssignmentState[documentId] == true) {
+                    // Cancel the response and allow the user to select again
+                    setState(() {
+                      selectedTeamNotifier.value = ''; // Clear the selected team, allowing selection again
+                      teamAssignmentState[documentId] = false; // Reset the state for this document
+                    });
 
-              //     // Check if a team is selected
-              //     if (selectedTeam.isNotEmpty) {
-              //       try {
-              //         // Save to Firestore by updating the selected document
-              //         await FirebaseFirestore.instance
-              //             .collection('Help Requests')
-              //             .doc(documentId) // Use the document ID of the selected marker
-              //             .update({
-              //           'selectedTeam': selectedTeam,
-                        
-              //         });
+                    // Optionally reset the 'selectedTeam' field in Firestore to null or empty
+                    await FirebaseFirestore.instance
+                        .collection('Help Requests')
+                        .doc(documentId)
+                        .update({
+                      'selectedTeam': FieldValue.delete(),  // Remove the selected team from Firestore
+                    });
 
-              //         // Show a confirmation message
-              //         ScaffoldMessenger.of(context).showSnackBar(
-              //           SnackBar(content: Text('Team $selectedTeam has been assigned.')),
-              //         );
-              //       } catch (e) {
-              //         // Handle errors (e.g., if the document does not exist)
-              //         ScaffoldMessenger.of(context).showSnackBar(
-              //           SnackBar(content: Text('Error assigning team: $e')),
-              //         );
-              //       }
-              //     } else {
-              //       // Handle case where no team is selected
-              //       ScaffoldMessenger.of(context).showSnackBar(
-              //         const SnackBar(content: Text('Please select a team to respond.')),
-              //       );
-              //     }
-              //   },
-              //   child: const Text(
-              //     'Respond',
-              //     style: TextStyle(fontSize: 18, color: Colors.white),
-              //   ),
-              // ),
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Response canceled for marker $documentId. You can select again.')),
+                    );
+                  } else {
+                    // Get the selected team
+                    String selectedTeam = selectedTeamNotifier.value;
 
-             ElevatedButton(
-  style: ElevatedButton.styleFrom(
-    minimumSize: const Size(double.infinity, 50),
-    backgroundColor: teamAssignmentState[documentId] == true
-        ? Colors.red // Cancel button color 
-        : Colors.green, // Respond button color 
-    shape: RoundedRectangleBorder( 
-      borderRadius: BorderRadius.circular(10), 
-    ),
-  ),
-  onPressed: () async {
-    if (teamAssignmentState[documentId] == true) {
-      // Cancel the response and allow the user to select again
-      setState(() {
-        selectedTeamNotifier.value = ''; // Clear the selected team, allowing selection again
-        teamAssignmentState[documentId] = false; // Reset the state for this document
-      });
+                    // Check if a team is selected
+                    if (selectedTeam.isNotEmpty) {
+                      try {
+                        // Save to Firestore
+                        await FirebaseFirestore.instance
+                            .collection('Help Requests')
+                            .doc(documentId) // Update the specific document
+                            .update({
+                          'selectedTeam': selectedTeam,
+                          
+                        });
 
-      // Optionally reset the 'selectedTeam' field in Firestore to null or empty
-      await FirebaseFirestore.instance
-          .collection('Help Requests')
-          .doc(documentId)
-          .update({
-        'selectedTeam': FieldValue.delete(),  // Remove the selected team from Firestore
-      });
+                        // Update state for the specific document
+                        setState(() {
+                          teamAssignmentState[documentId] = true; // Mark as responded
+                        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Response canceled for marker $documentId. You can select again.')),
-      );
-    } else {
-      // Get the selected team
-      String selectedTeam = selectedTeamNotifier.value;
-
-      // Check if a team is selected
-      if (selectedTeam.isNotEmpty) {
-        try {
-          // Save to Firestore
-          await FirebaseFirestore.instance
-              .collection('Help Requests')
-              .doc(documentId) // Update the specific document
-              .update({
-            'selectedTeam': selectedTeam,
-            
-          });
-
-          // Update state for the specific document
-          setState(() {
-            teamAssignmentState[documentId] = true; // Mark as responded
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Team $selectedTeam assigned to marker $documentId.')),
-          );
-        } catch (e) {
-          // Handle errors (e.g., document not found)
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error assigning team: $e')),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a team to respond.')),
-        );
-      }
-    }
-  },
-  child: Text(
-    teamAssignmentState[documentId] == true ? 'Cancel' : 'Respond', // Toggle text based on state
-    style: const TextStyle(fontSize: 18, color: Colors.white),
-  ),
-),
-
-
-
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Team $selectedTeam assigned to marker $documentId.')),
+                        );
+                      } catch (e) {
+                        // Handle errors (e.g., document not found)
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error assigning team: $e')),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please select a team to respond.')),
+                      );
+                    }
+                  }
+                },
+                child: Text(
+                  teamAssignmentState[documentId] == true ? 'Cancel' : 'Respond', // Toggle text based on state
+                  style: const TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ),
 
               const SizedBox(height: 20),
-
 
               // Action Buttons Section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                    _actionButton(Icons.description, 'Report', null, () {
-                    //  print(documentId );
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => IncidentReportScreen(documentId: documentId)), // Ensure you import the Report class
@@ -466,72 +510,69 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
-Future<String> _getSelectedTeamFromFirestore(String documentId) async {
-  DocumentSnapshot doc = await FirebaseFirestore.instance
-      .collection('Help Requests')
-      .doc(documentId)
-      .get();
-  var data = doc.data() as Map<String, dynamic>;
-  return data['selectedTeam'] ?? ''; // Return the selectedTeam value or an empty string if not found
-}
+  Future<String> _getSelectedTeamFromFirestore(String documentId) async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('Help Requests')
+        .doc(documentId)
+        .get();
+    var data = doc.data() as Map<String, dynamic>;
+    return data['selectedTeam'] ?? ''; // Return the selectedTeam value or an empty string if not found
+  }
 
-Widget _teamButton(String team, String documentId) {
-  return FutureBuilder<String>(
-    future: _getSelectedTeamFromFirestore(documentId),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const CircularProgressIndicator(); // Show loading while fetching data
-      }
+  Widget _teamButton(String team, String documentId) {
+    return FutureBuilder<String>(
+      future: _getSelectedTeamFromFirestore(documentId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(); // Show loading while fetching data
+        }
 
-      if (snapshot.hasError) {
-        return const Text("Error loading team data!"); // Handle potential errors
-      }
+        if (snapshot.hasError) {
+          return Text("Error loading team data!"); // Handle potential errors
+        }
 
-      // Set the initial value of the notifier only once, when Firestore data is loaded
-      if (selectedTeamNotifier.value.isEmpty && snapshot.hasData) {
-        selectedTeamNotifier.value = snapshot.data!;
-      }
+        // Set the initial value of the notifier only once, when Firestore data is loaded
+        if (selectedTeamNotifier.value.isEmpty && snapshot.hasData) {
+          selectedTeamNotifier.value = snapshot.data!;
+        }
 
-      return ValueListenableBuilder<String>(
-        valueListenable: selectedTeamNotifier, // Listen to changes in selection
-        builder: (context, selectedTeam, _) {
-          bool isSelected = selectedTeam == team; // Check if this team is selected
+        return ValueListenableBuilder<String>(
+          valueListenable: selectedTeamNotifier, // Listen to changes in selection
+          builder: (context, selectedTeam, _) {
+            bool isSelected = selectedTeam == team; // Check if this team is selected
 
-          // Define colors based on selection state
-          Color backgroundColor = isSelected ? Colors.orange : Colors.white;
-          Color textColor = isSelected ? Colors.white : Colors.black;
-          Color borderColor = isSelected ? Colors.orangeAccent : Colors.grey.shade300;
+            // Define colors based on selection state
+            Color backgroundColor = isSelected ? Colors.orange : Colors.white;
+            Color textColor = isSelected ? Colors.white : Colors.black;
+            Color borderColor = isSelected ? Colors.orangeAccent : Colors.grey.shade300;
 
-          return ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(100, 50), // Adjust button size as needed
-              backgroundColor: backgroundColor, // Highlight selected team
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: BorderSide(color: borderColor), // Border color based on selection
+            return ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(100, 50), // Adjust button size as needed
+                backgroundColor: backgroundColor, // Highlight selected team
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(color: borderColor), // Border color based on selection
+                ),
               ),
-            ),
-            onPressed: () {
-              // Update the selected team on button press
-              selectedTeamNotifier.value = team;
-            },
-            child: Text(
-              team,
-              style: TextStyle(
-                color: textColor, // Text color based on selection
-                fontWeight: FontWeight.bold,
+              onPressed: () {
+                // Update the selected team on button press
+                selectedTeamNotifier.value = team;
+              },
+              child: Text(
+                team,
+                style: TextStyle(
+                  color: textColor, // Text color based on selection
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          );
-        },
-      );
-    },
-  );
-  setState(() {});
-}
-
-
-
+            );
+          },
+        );
+      },
+    );
+    setState(() {});
+  }
 
   // Helper for Action Buttons
   Widget _actionButton(IconData icon, String label, String? emergencyPhoto, VoidCallback? onPressed) {
@@ -563,76 +604,174 @@ Widget _teamButton(String team, String documentId) {
     );
   }
 
-// Function to show the full image in a dialog
-void _showFullImage(String imageUrl) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: 300, // Adjust height as needed
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                child: const Text('Close'),
-              ),
-            ],
+  // Function to show the full image in a dialog
+  void _showFullImage(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 300, // Adjust height as needed
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Helper for Details Section
+  Widget _detailItem(String title, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.black54,
           ),
         ),
-      );
-    },
-  );
-}
+        const SizedBox(height: 5),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
 
-// Helper for Details Section
-Widget _detailItem(String title, String value) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Colors.black54,
-        ),
-      ),
-      const SizedBox(height: 5),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Colors.black,
-        ),
-      ),
-      const SizedBox(height: 10),
-    ],
-  );
   
-}
+  Future<void> initFCM() async {
+    _messaging = FirebaseMessaging.instance;
 
-void saveAdminFcmToken() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token != null) {
-      await FirebaseFirestore.instance.collection('Accounts').doc(user.uid).update({
-        'fcmToken': token,
+    NotificationSettings settings = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('✅ Notification permission granted');
+
+      String? token = await _messaging.getToken();
+      print("📱 FCM Token: $token");
+
+      User? user = FirebaseAuth.instance.currentUser;
+      if (token != null && user != null) {
+        await FirebaseFirestore.instance
+            .collection('Accounts')
+            .doc(user.uid)
+            .set({'fcmToken': token}, SetOptions(merge: true));
+      }
+
+      _messaging.onTokenRefresh.listen((newToken) async {
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('Accounts')
+              .doc(user.uid)
+              .set({'fcmToken': newToken}, SetOptions(merge: true));
+        }
       });
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print('🔔 Foreground FCM message received');
+
+        RemoteNotification? notification = message.notification;
+        AndroidNotification? android = message.notification?.android;
+
+        if (notification != null && android != null) {
+          flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'high_importance_channel',
+                'High Importance Notifications',
+                importance: Importance.high,
+                priority: Priority.high,
+                icon: '@mipmap/ic_launcher',
+                playSound: true,
+                sound: RawResourceAndroidNotificationSound('alert_sound'),
+              ),
+            ),
+          );
+        }
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(notification?.title ?? 'New notification received'),
+          ),
+        );
+      });
+
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        print('📲 App opened from FCM notification');
+        // Optionally navigate or handle data
+      });
+    } else {
+      print('❌ Notification permission denied');
     }
   }
-}
+
+  void _initLocalNotifications() {
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initSettings =
+        InitializationSettings(android: androidSettings);
+
+    flutterLocalNotificationsPlugin.initialize(initSettings);
+
+    // Create channel for Android 8+
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel',
+      'High Importance Notifications',
+      description: 'This channel is used for important notifications.',
+      importance: Importance.high,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('alert_sound.mp3'),
+      enableVibration: true,
+    );
+    flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+  }
+
+  Future<void> _checkServiceStatus() async {
+    final status = await BackgroundServiceManager.getServiceStatus();
+    print('🔄 Background service status: $status');
+  }
+
+  @override
+  void dispose() {
+    // Don't stop background services for admins - they should continue monitoring
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -667,7 +806,7 @@ void saveAdminFcmToken() async {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HotlinesScreen()),
+                  MaterialPageRoute(builder: (context) => HotlinesScreen()),
                 );
               },
             ),
@@ -675,9 +814,14 @@ void saveAdminFcmToken() async {
               leading: const Icon(Icons.report),
               title: const Text('Incident Report'),
               onTap: () {
-                // Handle incident report navigation
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RespondedRequestsList()),
+                );
               },
             ),
+
+           
             const Divider(),
             ListTile(
               leading: const Icon(Icons.person),
@@ -686,18 +830,18 @@ void saveAdminFcmToken() async {
               onTap: () {
                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                  MaterialPageRoute(builder: (context) => ProfileScreen()),
                 );
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.qr_code),
-              title: const Text('Scan Q.R'),
+           ListTile(
+              leading: const Icon(Icons.approval),
+              title: const Text('Approve Accounts'),
               onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => QRScanner()),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NeedApprovalScreen()),
+                );
               },
             ),
             const Divider(),
@@ -707,7 +851,7 @@ void saveAdminFcmToken() async {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                  MaterialPageRoute(builder: (context) => SettingsScreen()),
                 );
               },
             ),
@@ -717,10 +861,11 @@ void saveAdminFcmToken() async {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AboutPage()),
+                  MaterialPageRoute(builder: (context) => AboutPage()),
                 );
               },
             ),
+             
           ],
         ),
       ),
@@ -763,4 +908,16 @@ void saveAdminFcmToken() async {
       ),
     );
   }
+}
+
+Future<void> ensureLocationPermissions() async {
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+  }
+  if (permission == LocationPermission.deniedForever) {
+    // Permissions are denied forever, handle appropriately.
+    return;
+  }
+  // Permissions granted, continue.
 }
