@@ -16,7 +16,7 @@ class _NeedApprovalScreenState extends State<NeedApprovalScreen> {
       FirebaseFirestore.instance.collection('Accounts');
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  String _selectedUserType = 'User';
+  final String _selectedUserType = 'User';
 
   Future<void> approveUser(DocumentSnapshot doc, String userType) async {
     try {
@@ -57,7 +57,7 @@ class _NeedApprovalScreenState extends State<NeedApprovalScreen> {
             SnackBar(
               content: Text('User approved! Email verification sent to ${user.email}'),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 5),
+              duration: const Duration(seconds: 5),
             ),
           );
         } else {
@@ -139,7 +139,7 @@ class _NeedApprovalScreenState extends State<NeedApprovalScreen> {
                                     Text('Phone: ${data['phoneNumber'] ?? ''}'),
                                     Text('Religion: ${data['religion'] ?? ''}'),
                                     const SizedBox(height: 12),
-                                    Text('Assign user type:'),
+                                    const Text('Assign user type:'),
                                     DropdownButton<String>(
                                       value: userType,
                                       items: const [

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:daid/login_screen.dart';
+import 'package:daid/profileliststyle.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +8,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileDrawer extends StatelessWidget {
+  const ProfileDrawer({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -13,23 +17,23 @@ class ProfileDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           ListTile(
-            leading: Icon(Icons.arrow_back),
-            title: Text('Back'),
+            leading: const Icon(Icons.menu),
+            title: const Text('Back'),
             onTap: () {
               Navigator.pop(context);
             },
           ),
-          DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blueGrey),
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Color.fromARGB(255, 228, 15, 15)),
             child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
           ),
           ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile'),
+            leading: const Icon(Icons.person),
+            title: const Text('Profile'),
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => ProfileScreen()),
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
             },
           ),
@@ -41,6 +45,8 @@ class ProfileDrawer extends StatelessWidget {
 }
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -85,73 +91,146 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return Scaffold(
-        appBar: AppBar(title: Text('Profile')),
-        body: Center(child: CircularProgressIndicator()),
+
+      return SafeArea(
+        child: Scaffold(
+          appBar: AppBar(title: const Text('Profile')),
+          body:  Container(child: loading ? CircularProgressIndicator() : content()),
+        ),
       );
-    }
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Profile'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      drawer: ProfileDrawer(),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+
+  Widget content(){
+      return SingleChildScrollView(
         child: Column(
-          children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 75,
-                  backgroundImage: userData!['photo'] != null
-                      ? NetworkImage(userData!['photo'])
-                      : AssetImage('assets/profile_placeholder.png') as ImageProvider,
+        children: [
+          Container(
+            height: 250,
+            width: double.maxFinite,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/borcity.jpg'),
+                fit: BoxFit.fill
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 4,
-                  child: InkWell(
-                    onTap: pickAndUpload,
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.white38,
-                      child: Icon(Icons.camera_alt, size: 20),
-                    ),
-                  ),
-                )
-              ],
             ),
-            SizedBox(height: 16),
-            Text(userData!['name'] ?? 'N/A', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            SizedBox(height: 24),
-            _infoRow('Email Address', userData!['email']),
-            _infoRow('Religion', userData!['religion']),
-            _infoRow('Gender', userData!['gender']),
-            _infoRow('Home Address', userData!['address']),
-            _infoRow('Birth Date', userData!['dateOfBirth']),
-            _infoRow('Age', userData!['age'] != null ? userData!['age'].toString() : null),
-            _infoRow('Phone Number', userData!['phoneNumber'] != null ? '+63${userData!['phoneNumber']}' : null),
-          ],
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color(0xFF902418).withAlpha(217)
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color.fromARGB(255, 255, 255, 255), width: 4),
+                ),
+                child: ClipOval(
+                  child: Image.network(
+                    userData?['photo'] ?? '',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white
+                        ),
+                        child: Image.asset(
+                          'assets/logo.png',
+                          fit: BoxFit.contain,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+                   Positioned(
+                    bottom: 50,
+                    right: 110,
+                    child: SizedBox(
+                      height: 40,
+                      width: 40,
+                      child: TextButton(
+                        style:  TextButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: EdgeInsets.zero,
+                          side: BorderSide(color: Colors.grey, width: 1.5)
+                        ),
+                        onPressed: (){
+                          pickAndUpload();
+                        }, 
+                        child: Icon(Icons.camera_alt, size: 20, color: Colors.blueGrey,)
+                        ),
+                    )
+                  ),
+                   Padding(
+                     padding: const EdgeInsets.only(bottom:8.0),
+                     child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Text(userData!['name'] ?? 'N/A', 
+                      style: const TextStyle(
+                        fontSize: 22, 
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)
+                        )
+                      ),
+                   ),
+                ],
+              ),
+            ),
+          ),
+         
+          Container(
+            width: double.maxFinite,
+            height: double.maxFinite,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black12, width: 2)
+            ),
+            child: settings(),
+          )
+          // settings()
+        ],
+        
+                ),
+      );
+  }
+
+
+  Widget settings() {
+    return ListView(
+      children: [
+        ProfileMenuWidget(
+            title: 'Update email address',
+            icon: Icons.email_outlined,
+            onPress: () {}),
+            // const Divider(thickness: 0.5, color: Colors.grey,),
+        ProfileMenuWidget(
+            title: 'Change password',
+            icon: Icons.password_outlined,
+            onPress: () {}),
+            // const Divider(thickness: 0.5, color: Colors.grey,),
+        ProfileMenuWidget(
+            title: 'User Management',
+            icon: Icons.person_2_outlined,
+            onPress: () {}),
+            // const Divider(thickness: 0.5, color: Colors.grey,),
+        ProfileMenuWidget(
+          title: 'Logout',
+          icon: Icons.logout_outlined,
+          onPress: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            );
+          },
+          endIcon: false,
+          textColor: Colors.red,
         ),
-      ),
+        // const Divider(thickness: 0.5, color: Colors.grey,),
+      ],
     );
   }
 
-  Widget _infoRow(String label, String? value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          Expanded(child: Text(value ?? 'N/A', style: TextStyle(fontSize: 16))),
-        ],
-      ),
-    );
-  }
 }

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UHotlinesScreen extends StatefulWidget {
-  const UHotlinesScreen({Key? key}) : super(key: key);
+  const UHotlinesScreen({super.key});
 
   @override
   State<UHotlinesScreen> createState() => _UHotlinesScreenState();
@@ -22,7 +22,7 @@ class _UHotlinesScreenState extends State<UHotlinesScreen> {
   Future<void> _callNumber(String number) async {
     if (number.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No phone number provided')),
+        const SnackBar(content: Text('No phone number provided')),
       );
       return;
     }
@@ -37,17 +37,17 @@ class _UHotlinesScreenState extends State<UHotlinesScreen> {
       await launchUrl(uri);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cannot launch phone dialer')),
+        const SnackBar(content: Text('Cannot launch phone dialer')),
       );
     }
   }
 
   Widget _buildHotlineItem(Map<String, dynamic> data) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFF333333),
+        color: const Color(0xFF333333),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -62,12 +62,12 @@ class _UHotlinesScreenState extends State<UHotlinesScreen> {
                 children: [
                   Text(
                     '${data['name']} (${data['provider']})',
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     data['number'],
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ],
               ),
@@ -75,7 +75,7 @@ class _UHotlinesScreenState extends State<UHotlinesScreen> {
           ),
           IconButton(
             onPressed: () => _callNumber(data['number']),
-            icon: Icon(Icons.phone, color: Colors.green),
+            icon: const Icon(Icons.phone, color: Colors.green),
           ),
         ],
       ),
@@ -85,20 +85,20 @@ class _UHotlinesScreenState extends State<UHotlinesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF8F0F7),
+      backgroundColor: const Color(0xFFF8F0F7),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 247, 245, 245),
-        title: Text('Emergency Hotlines'),
+        title: const Text('Emergency Hotlines'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: hotlinesRef.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Error loading hotlines'));
+            return const Center(child: Text('Error loading hotlines'));
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           final data = snapshot.data!.docs;

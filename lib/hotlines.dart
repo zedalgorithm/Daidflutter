@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HotlinesScreen extends StatefulWidget {
+  const HotlinesScreen({super.key});
+
   @override
   _HotlinesScreenState createState() => _HotlinesScreenState();
 }
@@ -71,16 +73,16 @@ class _HotlinesScreenState extends State<HotlinesScreen> {
 
     return Card(
       color: Colors.grey[850],
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: ListTile(
         onTap: () => _openModal({'id': doc.id, ...data}),
         title: Text(
           '${data['name']} (${data['provider']})',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(data['number'], style: TextStyle(color: Colors.white)),
+        subtitle: Text(data['number'], style: const TextStyle(color: Colors.white)),
         trailing: IconButton(
-          icon: Icon(Icons.phone, color: Colors.green),
+          icon: const Icon(Icons.phone, color: Colors.green),
           onPressed: () => _callNumber(data['number']),
         ),
       ),
@@ -92,16 +94,16 @@ class _HotlinesScreenState extends State<HotlinesScreen> {
       backgroundColor: Colors.grey[900],
       title: Text(
         editId != null ? 'Edit Hotline' : 'Add Hotline',
-        style: TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.white),
       ),
       content: SingleChildScrollView(
         child: Column(
           children: ['name', 'number', 'provider'].map((field) {
             return TextField(
-              style: TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 labelText: field[0].toUpperCase() + field.substring(1),
-                labelStyle: TextStyle(color: Colors.white70),
+                labelStyle: const TextStyle(color: Colors.white70),
                 filled: true,
                 fillColor: Colors.white10,
               ),
@@ -124,15 +126,15 @@ class _HotlinesScreenState extends State<HotlinesScreen> {
               _deleteHotline(editId!);
               setState(() => modalVisible = false);
             },
-            child: Text("Delete", style: TextStyle(color: Colors.red)),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         TextButton(
           onPressed: _saveHotline,
-          child: Text(editId != null ? "Update" : "Add", style: TextStyle(color: Colors.green)),
+          child: Text(editId != null ? "Update" : "Add", style: const TextStyle(color: Colors.green)),
         ),
         TextButton(
           onPressed: () => setState(() => modalVisible = false),
-          child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+          child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
         ),
       ],
     );
@@ -141,15 +143,15 @@ class _HotlinesScreenState extends State<HotlinesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF8F0F7),
+      backgroundColor: const Color(0xFFF8F0F7),
       appBar: AppBar(
-        title: Text('Hotlines'),
+        title: const Text('Hotlines'),
         backgroundColor: Colors.black,
       ),
       body: StreamBuilder(
         stream: hotlines.snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
           final docs = snapshot.data!.docs;
 
@@ -161,7 +163,7 @@ class _HotlinesScreenState extends State<HotlinesScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
         onPressed: () => _openModal(),
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
       persistentFooterButtons: modalVisible ? [_buildModal()] : [],
     );

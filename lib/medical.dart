@@ -1,507 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'dart:io'; // For File
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:geolocator/geolocator.dart';
-// import 'package:geocoding/geocoding.dart';
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
-
-// class ReportEmergencyPage extends StatefulWidget {
-//   @override
-//   _ReportEmergencyPageState createState() => _ReportEmergencyPageState();
-// }
-
-// class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
-//   int selectedButton = -1;
-//   int selectedEmergencyType = -1;
-//   File? _image; // Declare a variable to hold the image file
-
-//   late GoogleMapController mapController; // Controller for the Google Map
-//   LatLng _currentPosition = const LatLng(11.6072, 125.4353); // Variable to hold the current position
-//   Set<Marker> _markers = {}; // Set to hold markers
-//   String _currentAddress = ''; // Variable to hold the current address
-//   TextEditingController _addressController = TextEditingController(); // Declare the TextEditingController
-//   String? userAddress; // Variable to hold the user's address
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _getCurrentLocation(); // Get the current location when the widget is initialized
-//     _getUserAddress(); // Fetch the user's address when the widget is initialized
-//   }
-
-//   Future<void> _getCurrentLocation() async {
-//     // Request location permission
-//     LocationPermission permission = await Geolocator.checkPermission();
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//       if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) {
-//         // Handle permission denied
-//         return;
-//       }
-//     }
-
-//     // Get the current location
-//     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-//     setState(() {
-//       _currentPosition = LatLng(position.latitude, position.longitude); // Create LatLng from Position
-//       _markers.add(
-//         Marker(
-//           markerId: MarkerId('current_location'),
-//           position: _currentPosition,
-//           infoWindow: InfoWindow(title: 'You are here'), // Info window for the marker
-//           draggable: true, // Make the marker draggable
-//           onDragEnd: (newPosition) {
-//             setState(() {
-//               _currentPosition = newPosition; // Update the current position when the marker is dragged
-//               _getAddressFromLatLng(newPosition); // Fetch the address from the new position
-//               mapController.animateCamera(
-//                 CameraUpdate.newLatLng(newPosition), // Animate camera to new position
-//               );
-//             });
-//           },
-//         ),
-//       );
-//       _getAddressFromLatLng(_currentPosition); // Fetch the address from the current position
-//     });
-//   }
-
-//   Future<void> _getAddressFromLatLng(LatLng position) async {
-//     List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-//     if (placemarks.isNotEmpty) {
-//        print(placemarks[0].toJson()); 
-//       setState(() {
-//         _currentAddress = '${placemarks[0].street}, ${placemarks[0].subLocality ?? ''}, ${placemarks[0].locality}, ${placemarks[0].subAdministrativeArea}, ${placemarks[0].country}'; // Format the address
-//         _addressController.text = _currentAddress; // Update the TextEditingController
-//       });
-//     }
-//   }
-
-//   Future<void> _getUserAddress() async {
-//     // Similar to the _getUserAddress method from UserAddress class
-//     try {
-//       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-//       if (!serviceEnabled) {
-//         await Geolocator.openLocationSettings();
-//         setState(() {
-//           userAddress = "Location services are disabled.";
-//         });
-//         return;
-//       }
-
-//       LocationPermission permission = await Geolocator.checkPermission();
-//       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-//         permission = await Geolocator.requestPermission();
-//         if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) {
-//           setState(() {
-//             userAddress = "Location permissions are denied.";
-//           });
-//           return;
-//         }
-//       }
-
-//       Position position = await Geolocator.getCurrentPosition();
-//       String reverseGeocodeUrl = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=AIzaSyAYQBD5gUFDhRQNDxd_bx-eesznMxijX8k';
-//       final geocodeResponse = await http.get(Uri.parse(reverseGeocodeUrl));
-//       final geocodeData = json.decode(geocodeResponse.body);
-
-//       if (geocodeData['results'] == null || geocodeData['results'].isEmpty) {
-//         setState(() {
-//           userAddress = "Unable to fetch address.";
-//         });
-//         return;
-//       }
-
-//       String formattedAddress = geocodeData['results'][0]['formatted_address'];
-//       setState(() {
-//         userAddress = formattedAddress; // Update the userAddress variable
-//       });
-//     } catch (e) {
-//       print("Error fetching user address: $e");
-//       setState(() {
-//         userAddress = "Error fetching data. Please try again.";
-//       });
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // Get screen dimensions
-//     final screenWidth = MediaQuery.of(context).size.width;
-//     final screenHeight = MediaQuery.of(context).size.height;
-//     final textScale = MediaQuery.textScaleFactorOf(context);
-
-//     return SafeArea(
-//       child: Scaffold(
-//         appBar: AppBar(
-//           leading: IconButton(
-//             icon: Icon(Icons.arrow_back),
-//             onPressed: () {
-//               Navigator.pop(context);
-//             },
-//           ),
-//           backgroundColor: Colors.white,
-//         ),
-//         body: Padding(
-//           padding: EdgeInsets.all(screenWidth * 0.03),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               // Title
-//               Center(
-//                 child: Text(
-//                   '🚑 REPORT MEDICAL EMERGENCY',
-//                   style: TextStyle(
-//                     fontSize: 18 * textScale,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.red,
-//                   ),
-//                 ),
-//               ),
-//               SizedBox(height: screenHeight * 0.02),
-
-//               // Map Placeholder
-//               Container(
-//                 height: screenHeight * 0.25,
-//                 width: MediaQuery.of(context).size.width,
-//                 child: Stack(
-//                   children: [
-//                     GoogleMap(
-//                       onMapCreated: (GoogleMapController controller) {
-//                         mapController = controller; // Initialize the map controller
-//                       },
-//                       initialCameraPosition: CameraPosition(
-//                         target: _currentPosition, // Use current position
-//                         zoom: 14.0,
-//                       ),
-//                       myLocationEnabled: false, // Disable user location blue dot
-//                       markers: _markers, // Set the markers on the map
-//                     ),
-//                     Positioned(
-//                       top: 10,
-//                       right: 10,
-//                       child: Column(
-//                         children: [
-//                           // Full View Button
-//                           FloatingActionButton(
-//                             onPressed: () {
-//                               // Logic to expand the map to full screen
-//                             },
-//                              mini: true,
-//                             child: Icon(Icons.fullscreen),
-//                             backgroundColor: Colors.white,
-//                           ),
-//                           SizedBox(height: 5), // Space between buttons
-//                           // Current Location Button
-//                           FloatingActionButton(
-//                             onPressed: () async {
-//                               try {
-//                                 // Request location permission if not already granted
-//                                 LocationPermission permission = await Geolocator.checkPermission();
-//                                 if (permission == LocationPermission.denied) {
-//                                   permission = await Geolocator.requestPermission();
-//                                   if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) {
-//                                     // Handle permission denied
-//                                     return;
-//                                   }
-//                                 }
-
-//                                 // Get the current location
-//                                 Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-                                
-//                                 // Update the state immediately
-//                                 setState(() {
-//                                   _currentPosition = LatLng(position.latitude, position.longitude);
-//                                   _markers.clear(); // Clear previous markers
-//                                   // Add a new marker for the current location
-//                                   _markers.add(
-//                                     Marker(
-//                                       markerId: MarkerId('current_location'),
-//                                       position: _currentPosition,
-//                                       infoWindow: InfoWindow(title: 'You are here'), // Info window for the marker
-//                                       draggable: true, // Make the marker draggable
-//                                       onDragEnd: (newPosition) {
-//                                         setState(() {
-//                                           _currentPosition = newPosition; // Update the current position when the marker is dragged
-//                                           _getAddressFromLatLng(newPosition); // Fetch the address from the new position
-//                                         });
-//                                       },
-//                                     ),
-//                                   );
-//                                   mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition)); // Move the camera to the current location
-//                                 });
-
-//                                 // Fetch the address immediately after setting the position
-//                                 await _getAddressFromLatLng(_currentPosition);
-//                               } catch (e) {
-//                                 // Handle any errors, such as permission denied or location not found
-//                                 print("Error getting location: $e");
-//                               }
-//                             },
-//                             mini: true, // Set to true to make the button smaller
-//                             child: Icon(
-//                               Icons.my_location,
-//                               size: 20, // Set the icon size
-//                             ),
-//                             backgroundColor: Colors.white,
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//               SizedBox(height: screenHeight * 0.02),
-
-//               // Select Emergency
-//               Text(
-//                 'Select Emergency:',
-//                 style: TextStyle(fontSize: 16 * textScale),
-//               ),
-//               Row(
-//                 children: [
-//                   Expanded(
-//                     child: ElevatedButton(
-//                       onPressed: () {
-//                         setState(() {
-//                           selectedButton = 0;
-//                         });
-//                       },
-//                       style: ElevatedButton.styleFrom(
-//                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(8),
-//                           side: selectedButton == 0
-//                               ? BorderSide(color: Colors.red, width: 1)
-//                               : BorderSide.none,
-//                         ),
-//                       ),
-//                       child: Text('For Myself'),
-//                     ),
-//                   ),
-//                   SizedBox(width: screenWidth * 0.02),
-//                   Expanded(
-//                     child: ElevatedButton(
-//                       onPressed: () {
-//                         setState(() {
-//                           selectedButton = 1;
-//                         });
-//                       },
-//                       style: ElevatedButton.styleFrom(
-//                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(8),
-//                           side: selectedButton == 1
-//                               ? BorderSide(color: Colors.red, width: 1)
-//                               : BorderSide.none,
-//                         ),
-//                       ),
-//                       child: Text('For Someone'),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//               SizedBox(height: screenHeight * 0.02),
-
-//               // Location Address
-//               Text(
-//                 'Location Address:',
-//                 style: TextStyle(fontSize: 16 * textScale),
-//               ),
-//               TextField(
-//                 controller: _addressController, // Use the TextEditingController
-//                 decoration: InputDecoration(
-//                   border: OutlineInputBorder(),
-//                   hintText: 'Enter location address',
-//                 ),
-//                 enabled: false, // Make the TextField non-editable
-//                 maxLines: 1,
-//                 minLines: 1,
-//               ),
-//               SizedBox(height: screenHeight * 0.02),
-
-//               // Type of Emergency
-//               Text(
-//                 'Type of Emergency:',
-//                 style: TextStyle(fontSize: 16 * textScale),
-//               ),
-//               Row(
-//                 children: [
-//                   Expanded(
-//                     child: ElevatedButton(
-//                       onPressed: () {
-//                         setState(() {
-//                           selectedEmergencyType = 0;
-//                         });
-//                       },
-//                       style: ElevatedButton.styleFrom(
-//                         backgroundColor: Colors.white,
-//                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(8),
-//                           side: selectedEmergencyType == 0
-//                               ? BorderSide(color: Colors.red, width: 2)
-//                               : BorderSide.none,
-//                         ),
-//                       ),
-//                       child: Column(
-//                         children: [
-//                           Icon(Icons.car_crash, color: Colors.red, size: screenWidth * 0.1),
-//                           Text('Vehicular Accident', style: TextStyle(fontSize: 12 * textScale)),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                   SizedBox(width: screenWidth * 0.02),
-//                   Expanded(
-//                     child: ElevatedButton(
-//                       onPressed: () {
-//                         setState(() {
-//                           selectedEmergencyType = 1;
-//                         });
-//                       },
-//                       style: ElevatedButton.styleFrom(
-//                         backgroundColor: Colors.white,
-//                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(8),
-//                           side: selectedEmergencyType == 1
-//                               ? BorderSide(color: Colors.red, width: 2)
-//                               : BorderSide.none,
-//                         ),
-//                       ),
-//                       child: Column(
-//                         children: [
-//                           Icon(Icons.medical_services, color: Colors.red, size: screenWidth * 0.1),
-//                           Text('Medical Case', style: TextStyle(fontSize: 12 * textScale)),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                   SizedBox(width: screenWidth * 0.02),
-//                   Expanded(
-//                     child: ElevatedButton(
-//                       onPressed: () {
-//                         setState(() {
-//                           selectedEmergencyType = 2;
-//                         });
-//                       },
-//                       style: ElevatedButton.styleFrom(
-//                         backgroundColor: Colors.white,
-//                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(8),
-//                           side: selectedEmergencyType == 2
-//                               ? BorderSide(color: Colors.red, width: 2)
-//                               : BorderSide.none,
-//                         ),
-//                       ),
-//                       child: Column(
-//                         children: [
-//                           Icon(Icons.person, color: Colors.red, size: screenWidth * 0.1),
-//                           Text('Trauma Case', style: TextStyle(fontSize: 12 * textScale)),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//               SizedBox(height: screenHeight * 0.02),
-
-//               // Upload Photo Section
-//               Center(
-//                 child: Column(
-//                   children: [
-//                     Text(
-//                       'Upload photo of incident (optional)',
-//                       style: TextStyle(fontSize: 16 * textScale),
-//                     ),
-//                     SizedBox(height: 8),
-//                     Container(
-//                       width: screenWidth * 0.15,
-//                       height: screenWidth * 0.15,
-//                       child: _image == null // Check if an image has been selected
-//                           ? ElevatedButton(
-//                               onPressed: () async {
-//                                 // Pick an image from the camera
-//                                 final pickedFile = await ImagePicker().getImage(source: ImageSource.camera);
-//                                 if (pickedFile != null) {
-//                                   setState(() {
-//                                     _image = File(pickedFile.path); // Update the image variable
-//                                   });
-//                                 }
-//                               },
-//                               style: ElevatedButton.styleFrom(
-//                                 padding: EdgeInsets.zero,
-//                                 backgroundColor: Colors.white,
-//                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-//                               ),
-//                               child: Column(
-//                                 mainAxisAlignment: MainAxisAlignment.center,
-//                                 children: [
-//                                   Icon(Icons.add_a_photo, color: Colors.black, size: screenWidth * 0.06),
-//                                   Text('Upload', style: TextStyle(color: Colors.black, fontSize: 10 * textScale)),
-//                                 ],
-//                               ),
-//                             )
-//                           : ClipRRect(
-//                               borderRadius: BorderRadius.circular(8),
-//                               child: Image.file(
-//                                 _image!,
-//                                 fit: BoxFit.cover,
-//                               ),
-//                             ), // Display the selected image
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//               SizedBox(height: screenHeight * 0.02),
-
-//               // // Display the user's address
-//               // userAddress == null
-//               //     ? CircularProgressIndicator() // Show loading indicator
-//               //     : Text(
-//               //         userAddress!,
-//               //         style: TextStyle(fontSize: 18),
-//               //         textAlign: TextAlign.center,
-//               //       ),
-
-//               // // Button to refresh the address
-//               // ElevatedButton(
-//               //   onPressed: _getUserAddress,
-//               //   child: Text("Refresh Address"),
-//               // ),
-
-//               // Send Report Button
-//               Center(
-//                 child: ElevatedButton(
-//                   onPressed: () {},
-//                   style: ElevatedButton.styleFrom(
-//                     backgroundColor: Colors.red,
-//                     padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.2, vertical: screenHeight * 0.02),
-//                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-//                   ),
-//                   child: Text('Send Report', style: TextStyle(fontSize: 16 * textScale, color: Colors.black,)),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-
-
-
-
-
-
-
-
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io'; // For File
@@ -517,6 +13,8 @@ import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Stor
 import 'Cancel.dart';
 
 class ReportEmergencyPage extends StatefulWidget {
+  const ReportEmergencyPage({super.key});
+
   @override
   _ReportEmergencyPageState createState() => _ReportEmergencyPageState();
 }
@@ -528,9 +26,9 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
 
   late GoogleMapController mapController; // Controller for the Google Map
   LatLng _currentPosition = const LatLng(11.6072, 125.4353); // Variable to hold the current position
-  Set<Marker> _markers = {}; // Set to hold markers
+  final Set<Marker> _markers = {}; // Set to hold markers
   String _currentAddress = ''; // Variable to hold the current address
-  TextEditingController _addressController = TextEditingController(); // Declare the TextEditingController
+  final TextEditingController _addressController = TextEditingController(); // Declare the TextEditingController
   String? userAddress; // Variable to hold the user's address
   String? address; // Variable to hold the address for saving
   DateTime requestDate = DateTime.now(); // Variable to hold the request date
@@ -563,9 +61,9 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
       _currentPosition = LatLng(position.latitude, position.longitude); // Create LatLng from Position
       _markers.add(
         Marker(
-          markerId: MarkerId('current_location'),
+          markerId: const MarkerId('current_location'),
           position: _currentPosition,
-          infoWindow: InfoWindow(title: 'You are here'), // Info window for the marker
+          infoWindow: const InfoWindow(title: 'You are here'), // Info window for the marker
           draggable: true, // Make the marker draggable
           onDragEnd: (newPosition) {
             setState(() {
@@ -704,7 +202,7 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
       // Navigate to Cancel screen after saving
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => CancelButtonExample()),
+        MaterialPageRoute(builder: (context) => const CancelButtonExample()),
       );
     } catch (e) {
       print("Error sending report: $e");
@@ -716,201 +214,285 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
     // Get screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final textScale = MediaQuery.textScaleFactorOf(context);
+    final textScale = MediaQuery.textScalerOf(context);
 
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          backgroundColor: Colors.white,
-        ),
-        body: Padding(
-          padding: EdgeInsets.all(screenWidth * 0.03),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title
-              Center(
-                child: Text(
-                  '🚑 REPORT MEDICAL EMERGENCY',
+          centerTitle: true,
+          title: RichText(
+            text: TextSpan(
+              children: [
+                WidgetSpan(
+                  child: Container(
+                    padding: EdgeInsets.all(2),
+                    // padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white, // White background
+                      borderRadius:
+                          BorderRadius.circular(180), // Optional: rounded corners
+                    ),
+                    child: Text(
+                      '🚑',
+                      style: TextStyle(
+                        fontSize: textScale.scale(18.0),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // Make emoji black for contrast
+                      ),
+                    ),
+                  ),
+                ),
+                TextSpan(
+                  text: ' REPORT EMERGENCY',
                   style: TextStyle(
-                    fontSize: 18 * textScale,
+                    fontSize: textScale.scale(18.0),
                     fontWeight: FontWeight.bold,
-                    color: Colors.red,
+                    color: Colors.white, // Rest of the text in white
                   ),
                 ),
-              ),
-              SizedBox(height: screenHeight * 0.02),
-
-              // Map Placeholder
-              Container(
-                height: screenHeight * 0.25,
-                width: MediaQuery.of(context).size.width,
-                child: Stack(
-                  children: [
-                    GoogleMap(
-                      onMapCreated: (GoogleMapController controller) {
-                        mapController = controller; // Initialize the map controller
-                      },
-                      initialCameraPosition: CameraPosition(
-                        target: _currentPosition, // Use current position
-                        zoom: 14.0,
-                      ),
-                      myLocationEnabled: false, // Disable user location blue dot
-                      markers: _markers, // Set the markers on the map
-                    ),
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: Column(
-                        children: [
-                          // Full View Button
-                          FloatingActionButton(
-                            onPressed: () {
-                              // Logic to expand the map to full screen
-                            },
-                             mini: true,
-                            child: Icon(Icons.fullscreen),
-                            backgroundColor: Colors.white,
-                          ),
-                          SizedBox(height: 5), // Space between buttons
-                          // Current Location Button
-                          FloatingActionButton(
-                            onPressed: () async {
-                              try {
-                                // Request location permission if not already granted
-                                LocationPermission permission = await Geolocator.checkPermission();
-                                if (permission == LocationPermission.denied) {
-                                  permission = await Geolocator.requestPermission();
-                                  if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) {
-                                    // Handle permission denied
-                                    return;
-                                  }
-                                }
-
-                                // Get the current location
-                                Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-                                
-                                // Update the state immediately
-                                setState(() {
-                                  _currentPosition = LatLng(position.latitude, position.longitude);
-                                  _markers.clear(); // Clear previous markers
-                                  // Add a new marker for the current location
-                                  _markers.add(
-                                    Marker(
-                                      markerId: MarkerId('current_location'),
-                                      position: _currentPosition,
-                                      infoWindow: InfoWindow(title: 'You are here'), // Info window for the marker
-                                      draggable: true, // Make the marker draggable
-                                      onDragEnd: (newPosition) {
-                                        setState(() {
-                                          _currentPosition = newPosition; // Update the current position when the marker is dragged
-                                          _getAddressFromLatLng(newPosition); // Fetch the address from the new position
-                                        });
-                                      },
-                                    ),
-                                  );
-                                  mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition)); // Move the camera to the current location
-                                });
-
-                                // Fetch the address immediately after setting the position
-                                await _getAddressFromLatLng(_currentPosition);
-                              } catch (e) {
-                                // Handle any errors, such as permission denied or location not found
-                                print("Error getting location: $e");
-                              }
-                            },
-                            mini: true, // Set to true to make the button smaller
-                            child: Icon(
-                              Icons.my_location,
-                              size: 20, // Set the icon size
-                            ),
-                            backgroundColor: Colors.white,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.02),
-
-              // Select Emergency
-              Text(
-                'Select Emergency:',
-                style: TextStyle(fontSize: 16 * textScale),
-              ),
-              Row(
+              ],
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          backgroundColor: Colors.red, // AppBar background color
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Map Placeholder
+            SizedBox(
+              height: screenHeight * 0.30,
+              width: MediaQuery.of(context).size.width,
+              child: Stack(
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedButton = 0;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: selectedButton == 0
-                              ? BorderSide(color: Colors.red, width: 1)
-                              : BorderSide.none,
+                  GoogleMap(
+                    zoomControlsEnabled: false,
+                    onMapCreated: (GoogleMapController controller) {
+                      mapController = controller; // Initialize the map controller
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target: _currentPosition, // Use current position
+                      zoom: 14.0,
+                    ),
+                    myLocationEnabled: false, // Disable user location blue dot
+                    markers: _markers, // Set the markers on the map
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Column(
+                      children: [
+                        // Full View Button
+                        FloatingActionButton(
+                          onPressed: () {
+                            // Logic to expand the map to full screen
+                          },
+                           mini: true,
+                          backgroundColor: Colors.white,
+                          child: const Icon(Icons.fullscreen),
                         ),
-                      ),
-                      child: Text('For Myself'),
+                        const SizedBox(height: 5), // Space between buttons
+                        // Current Location Button
+                        FloatingActionButton(
+                          onPressed: () async {
+                            try {
+                              // Request location permission if not already granted
+                              LocationPermission permission = await Geolocator.checkPermission();
+                              if (permission == LocationPermission.denied) {
+                                permission = await Geolocator.requestPermission();
+                                if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) {
+                                  // Handle permission denied
+                                  return;
+                                }
+                              }
+        
+                              // Get the current location
+                              Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+                              
+                              // Update the state immediately
+                              setState(() {
+                                _currentPosition = LatLng(position.latitude, position.longitude);
+                                _markers.clear(); // Clear previous markers
+                                // Add a new marker for the current location
+                                _markers.add(
+                                  Marker(
+                                    markerId: const MarkerId('current_location'),
+                                    position: _currentPosition,
+                                    infoWindow: const InfoWindow(title: 'You are here'), // Info window for the marker
+                                    draggable: true, // Make the marker draggable
+                                    onDragEnd: (newPosition) {
+                                      setState(() {
+                                        _currentPosition = newPosition; // Update the current position when the marker is dragged
+                                        _getAddressFromLatLng(newPosition); // Fetch the address from the new position
+                                      });
+                                    },
+                                  ),
+                                );
+                                mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition)); // Move the camera to the current location
+                              });
+        
+                              // Fetch the address immediately after setting the position
+                              await _getAddressFromLatLng(_currentPosition);
+                            } catch (e) {
+                              // Handle any errors, such as permission denied or location not found
+                              print("Error getting location: $e");
+                            }
+                          },
+                          mini: true,
+                          backgroundColor: Colors.white, // Set to true to make the button smaller
+                          child: const Icon(
+                            Icons.my_location,
+                            size: 20, // Set the icon size
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(width: screenWidth * 0.02),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedButton = 1;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: selectedButton == 1
-                              ? BorderSide(color: Colors.red, width: 1)
-                              : BorderSide.none,
+                                    Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    padding: EdgeInsets.all(screenWidth * 0.03),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(60),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(
+                              0x80202020), // Grey with 50% opacity
+                          spreadRadius: -15,
+                          blurRadius: 1,
+                          offset: Offset(4, 10),
                         ),
+                      ],
+                    ),
+                    child: TextField(
+                      style: TextStyle(
+                          fontSize: textScale.scale(10.0),
+                          color: Colors.black),
+                      controller:
+                          _addressController, // Use the TextEditingController
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        prefixIconColor: Colors.red,
+                        prefixIcon: Icon(Icons.location_on),
+                        prefixIconConstraints: const BoxConstraints(maxWidth: 40, minWidth: 30),
+                        contentPadding:
+                            EdgeInsets.all(8), // Adjust left padding
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(60),
+                            borderSide: const BorderSide(
+                                color: Colors.red, width: 1.0)),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(60),
+                          borderSide: const BorderSide(
+                              color: Colors.red, width: 1.0),
+                        ),
+                        hintText: 'Enter location address',
+                        isDense: true, // Reduces overall field height
                       ),
-                      child: Text('For Someone'),
+                      enabled: false, // Make the TextField non-editable
+                      maxLines: 2,
+                      minLines: 1,
                     ),
                   ),
+                ),
                 ],
               ),
-              SizedBox(height: screenHeight * 0.02),
+            ),
+            SizedBox(height: screenHeight * 0.02),
+            columnContainer(),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: sendBTNWidget(),
+              )
 
-              // Location Address
-              Text(
-                'Location Address:',
-                style: TextStyle(fontSize: 16 * textScale),
-              ),
-              TextField(
-                controller: _addressController, // Use the TextEditingController
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter location address',
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget columnContainer(){
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final textScale = MediaQuery.textScalerOf(context);
+
+    return Padding(
+      padding: EdgeInsets.all(screenWidth * 0.03),
+      child: Column(
+        children: [
+              // Select Emergency
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  'Select Emergency:',
+                  style: TextStyle(fontSize: textScale.scale(16.0)),
                 ),
-                enabled: false, // Make the TextField non-editable
-                maxLines: 1,
-                minLines: 1,
               ),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedButton = 0;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        selectedButton == 0 ? Colors.red : Colors.white,
+                    foregroundColor:
+                        selectedButton == 0 ? Colors.white : Colors.red,
+                    padding:
+                        EdgeInsets.symmetric(vertical: screenHeight * 0.02),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.red, width: 0.5)
+                        ),
+                  ),
+                  child: const Text('For Myself'),
+                ),
+              ),
+              SizedBox(width: screenWidth * 0.02),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedButton = 1;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        selectedButton == 1 ? Colors.red : Colors.white,
+                    foregroundColor:
+                        selectedButton == 1 ? Colors.white : Colors.red,
+                    padding:
+                        EdgeInsets.symmetric(vertical: screenHeight * 0.02),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.red, width: 0.5)
+                        ),
+                  ),
+                  child: const Text('For Someone'),
+                ),
+              ),
+            ],
+          ),
+          
               SizedBox(height: screenHeight * 0.02),
-
+          
               // Type of Emergency
-              Text(
-                'Type of Emergency:',
-                style: TextStyle(fontSize: 16 * textScale),
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  'Type of Emergency:',
+                  style: TextStyle(fontSize: textScale.scale(16.0)),
+                ),
               ),
               Row(
                 children: [
@@ -922,19 +504,18 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                    backgroundColor: selectedEmergencyType == 0 ? Colors.red : Colors.white,
+                    foregroundColor: selectedEmergencyType == 0 ? Colors.white : Colors.red,
                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: selectedEmergencyType == 0
-                              ? BorderSide(color: Colors.red, width: 2)
-                              : BorderSide.none,
+                          side: const BorderSide(color: Colors.red, width: 0.5)
                         ),
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.car_crash, color: Colors.red, size: screenWidth * 0.1),
-                          Text('Vehicular Accident', style: TextStyle(fontSize: 12 * textScale)),
+                          Icon(Icons.car_crash, color: selectedEmergencyType == 0 ? Colors.white : Colors.red, size: screenWidth * 0.075),
+                          Text('Vehicular Accident', style: TextStyle(fontSize: textScale.scale(12.0))),
                         ],
                       ),
                     ),
@@ -948,19 +529,18 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                    backgroundColor: selectedEmergencyType == 1 ? Colors.red : Colors.white,
+                    foregroundColor: selectedEmergencyType == 1 ? Colors.white : Colors.red,
                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: selectedEmergencyType == 1
-                              ? BorderSide(color: Colors.red, width: 2)
-                              : BorderSide.none,
+                          side:const BorderSide(color: Colors.red, width: 0.5),
                         ),
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.medical_services, color: Colors.red, size: screenWidth * 0.1),
-                          Text('Medical Case', style: TextStyle(fontSize: 12 * textScale)),
+                          Icon(Icons.medical_services, color: selectedEmergencyType == 1 ? Colors.white : Colors.red, size: screenWidth * 0.075),
+                          Text('Medical Case', style: TextStyle(fontSize: textScale.scale(12.0))),
                         ],
                       ),
                     ),
@@ -974,19 +554,18 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                    backgroundColor: selectedEmergencyType == 2 ? Colors.red : Colors.white,
+                    foregroundColor: selectedEmergencyType == 2 ? Colors.white : Colors.red,
                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: selectedEmergencyType == 2
-                              ? BorderSide(color: Colors.red, width: 2)
-                              : BorderSide.none,
+                          side: const BorderSide(color: Colors.red, width: 0.5),
                         ),
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.person, color: Colors.red, size: screenWidth * 0.1),
-                          Text('Trauma Case', style: TextStyle(fontSize: 12 * textScale)),
+                          Icon(Icons.person, color: selectedEmergencyType == 2 ? Colors.white : Colors.red, size: screenWidth * 0.075),
+                          Text('Trauma Case', style: TextStyle(fontSize: textScale.scale(12.0))),
                         ],
                       ),
                     ),
@@ -994,19 +573,19 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
                 ],
               ),
               SizedBox(height: screenHeight * 0.02),
-
+          
               // Upload Photo Section
               Center(
                 child: Column(
                   children: [
                     Text(
                       'Upload photo of incident (optional)',
-                      style: TextStyle(fontSize: 16 * textScale),
+                      style: TextStyle(fontSize: textScale.scale(16.0)),
                     ),
-                    SizedBox(height: 8),
-                    Container(
-                      width: screenWidth * 0.15,
-                      height: screenWidth * 0.15,
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: screenWidth * 0.25,
+                      height: screenWidth * 0.25,
                       child: _image == null // Check if an image has been selected
                           ? ElevatedButton(
                               onPressed: () async {
@@ -1021,13 +600,13 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
                               style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(Icons.add_a_photo, color: Colors.black, size: screenWidth * 0.06),
-                                  Text('Upload', style: TextStyle(color: Colors.black, fontSize: 10 * textScale)),
+                                  Text('Upload', style: TextStyle(color: Colors.black, fontSize: textScale.scale(10.0))),
                                 ],
                               ),
                             )
@@ -1042,26 +621,37 @@ class _ReportEmergencyPageState extends State<ReportEmergencyPage> {
                   ],
                 ),
               ),
-              SizedBox(height: screenHeight * 0.02),
+        ],
+      ),
+    );
+  }
 
+      Widget sendBTNWidget() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final textScale = MediaQuery.textScalerOf(context);
 
-              // Send Report Button
-              Center(
-                child: ElevatedButton(
-                  onPressed: _sendReport, // Call the new method when pressed
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.2, vertical: screenHeight * 0.02),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: Text('Send Report', style: TextStyle(fontSize: 16 * textScale, color: Colors.black)),
-                ),
-              ),
-            ],
+    return Align(
+      alignment: FractionalOffset.bottomCenter,
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _sendReport,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.2, vertical: screenHeight * 0.02),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          child: Text(
+            'Send Report',
+            style: TextStyle(
+              fontSize: textScale.scale(16.0),
+              color: Colors.white, // Add the color here
+            ),
           ),
         ),
       ),
     );
   }
 }
-
